@@ -1,23 +1,24 @@
-This is the LINK to Paper2gal:
-<img width="1463" height="808" alt="image" src="https://github.com/user-attachments/assets/d970298f-2a54-4f00-ad9d-fbf9e7e7838c" />
+# Paper2Galgame Link
 
+A cinematic, independent link portal designed and curated by **Hanazar Ochikawa**.
 
-🔗 Live Website:  
-https://hzagaming.github.io/Paper2galgame-Link/
+🔗 Live website: https://hzagaming.github.io/Paper2galgame-Link/
 
-This project is designed as a lightweight and accessible web entry point.  
-It demonstrates basic web deployment using GitHub Pages and serves as a functional navigation page.
+Current release: **v2.1.0** · [Release announcement](ANNOUNCEMENT.md) · [Announcement history](docs/announcements/history/v2.0.0.md)
 
 ## Features
-- Fast loading static webpage
-- Hosted on GitHub Pages
-- Direct access without additional routing
-- Simple and clean structure
 
-## Tech Stack
-- HTML
+- Animated, responsive single-page experience
+- Four curated destinations
+- Procedural Web Audio SFX and opt-in ambient BGM
+- Accessible, independent SFX and BGM controls
+- Reduced-motion support
+- Responsive portrait and short-landscape layouts
+- Zero runtime dependencies
+
+## Stack
+
+- HTML, CSS, and JavaScript
 - GitHub Pages
 
----
-
-Feel free to explore and support the project.
+This is an unofficial portal and does not represent Paper2Galgame.
