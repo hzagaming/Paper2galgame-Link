@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, history] = await Promise.all([
+const [readme, announcement, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.1.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.0.0.md', import.meta.url)),
 ]);
 
@@ -69,6 +70,13 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /if \(!AudioEngine\)\s*{\s*disableAudioControls\(\);\s*}\s*else\s*{\s*syncAudioControls\(\);/);
   assert.match(html, /voice\.cleaned/);
   assert.match(html, /resumeAfterPageShow/);
+  assert.match(html, /const nextEnabled = !sfxEnabled;\s*sfxEnabled = nextEnabled;/);
+  assert.match(html, /const nextEnabled = !bgmEnabled;\s*bgmEnabled = nextEnabled;/);
+  assert.match(html, /let sfxIntentRevision = 0;/);
+  assert.match(html, /let bgmIntentRevision = 0;/);
+  assert.match(html, /intentRevision !== sfxIntentRevision/);
+  assert.match(html, /intentRevision !== bgmIntentRevision/);
+  assert.match(html, /if \(!bgmEnabled\) return;/);
 });
 
 test('keeps intro and pointer effects idempotent and input-aware', () => {
@@ -90,11 +98,22 @@ test('constrains the hero and header controls on narrow screens', () => {
   assert.match(html, /\.sound-toggle\s*{[\s\S]*?min-height:\s*2\.75rem/);
 });
 
-test('publishes v2.1.0 and archives the v2.0.0 announcement', () => {
-  assert.match(html, /name="application-version" content="2\.1\.0"/);
-  assert.match(html, /v2\.1\.0/);
-  assert.match(readme, /v2\.1\.0/);
-  assert.match(announcement, /v2\.1\.0/);
-  assert.match(announcement, /history\/v2\.0\.0\.md/);
-  assert.match(history, /v2\.0\.0/);
+test('guides users to links and handles touch-only browser chrome', () => {
+  assert.match(html, /content="width=device-width, initial-scale=1, viewport-fit=cover"/);
+  assert.match(html, /rel="icon"[^>]*data:image\/svg\+xml/);
+  assert.match(html, /class="hero-cta"[^>]*href="#destinations"/);
+  assert.match(html, /id="destinations"/);
+  assert.match(html, /@media\s*\(hover:\s*hover\)\s*and\s*\(pointer:\s*fine\)[\s\S]*?\.link-card:hover/);
+  assert.match(html, /safe-area-inset-left/);
+  assert.match(html, /\.hero-cta\s*{[\s\S]*?min-height:\s*2\.75rem/);
+});
+
+test('publishes v2.2.0 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.2\.0"/);
+  assert.match(html, /v2\.2\.0/);
+  assert.match(readme, /v2\.2\.0/);
+  assert.match(announcement, /v2\.2\.0/);
+  assert.match(announcement, /history\/v2\.1\.0\.md/);
+  assert.match(historyV21, /v2\.1\.0/);
+  assert.match(historyV20, /v2\.0\.0/);
 });

@@ -2,10 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.1.0">
+<meta name="application-version" content="2.2.0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
 :root {
@@ -44,6 +45,7 @@ body {
 button,
 a {
   font: inherit;
+  touch-action: manipulation;
 }
 
 a {
@@ -195,7 +197,8 @@ a {
   width: min(100%, 96rem);
   min-height: 100vh;
   margin: 0 auto;
-  padding: 0 clamp(1.25rem, 4vw, 4.5rem);
+  padding-left: max(clamp(1.25rem, 4vw, 4.5rem), env(safe-area-inset-left, 0px));
+  padding-right: max(clamp(1.25rem, 4vw, 4.5rem), env(safe-area-inset-right, 0px));
 }
 
 .topbar {
@@ -289,12 +292,6 @@ a {
   transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
 }
 
-.sound-toggle:hover {
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.09);
-  transform: translateY(-2px);
-}
-
 .sound-toggle:disabled {
   opacity: 0.45;
   cursor: not-allowed;
@@ -376,6 +373,33 @@ h1 .title-accent {
   color: #c8c5bf;
   font-size: clamp(1rem, 1.3vw, 1.18rem);
   line-height: 1.8;
+}
+
+.hero-cta {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.8rem;
+  padding: 0 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
+}
+
+.hero-cta svg {
+  width: 0.9rem;
+  transition: transform 220ms var(--ease);
+}
+
+.hero-cta:active {
+  transform: translateY(1px);
 }
 
 .author-line {
@@ -502,6 +526,7 @@ h1 .title-accent {
 .links-section {
   padding: clamp(5rem, 9vw, 9rem) 0;
   border-top: 1px solid var(--line);
+  scroll-margin-top: 1rem;
 }
 
 .section-heading {
@@ -567,16 +592,6 @@ h2 {
   content: "";
   opacity: 0;
   transition: opacity 320ms ease;
-}
-
-.link-card:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.28);
-  transform: translateY(-8px);
-}
-
-.link-card:hover::before {
-  opacity: 1;
 }
 
 .link-card--featured {
@@ -664,12 +679,6 @@ h2 {
   width: 1rem;
 }
 
-.link-card:hover .card-arrow {
-  background: var(--ink);
-  color: #0c0d10;
-  transform: rotate(45deg);
-}
-
 .footer {
   display: flex;
   align-items: center;
@@ -703,6 +712,35 @@ h2 {
 :focus-visible {
   outline: 2px solid var(--cyan);
   outline-offset: 5px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .sound-toggle:hover,
+  .hero-cta:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.09);
+    transform: translateY(-2px);
+  }
+
+  .hero-cta:hover svg {
+    transform: translateX(0.2rem);
+  }
+
+  .link-card:hover {
+    border-color: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.28);
+    transform: translateY(-8px);
+  }
+
+  .link-card:hover::before {
+    opacity: 1;
+  }
+
+  .link-card:hover .card-arrow {
+    background: var(--ink);
+    color: #0c0d10;
+    transform: rotate(45deg);
+  }
 }
 
 @keyframes introWipe {
@@ -747,7 +785,8 @@ h2 {
 
 @media (max-width: 720px) {
   .site-shell {
-    padding-inline: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1rem, env(safe-area-inset-right, 0px));
   }
 
   .topbar {
@@ -893,7 +932,7 @@ h2 {
 </style>
 </noscript>
 </head>
-<body data-version="2.1.0">
+<body data-version="2.2.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <div class="backdrop" aria-hidden="true"></div>
@@ -922,7 +961,7 @@ h2 {
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.1.0 · Link portal
+        v2.2.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效">
@@ -955,6 +994,10 @@ h2 {
         <p class="lede" data-reveal style="--delay: 360ms">
           为 Paper2Galgame 与相关内容建立的一处精致入口。没有复杂导航，只有经过整理的目的地，以及恰到好处的互动。
         </p>
+        <a class="hero-cta" href="#destinations" data-sfx data-reveal style="--delay: 410ms">
+          <span>Explore destinations</span>
+          <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
+        </a>
         <div class="author-line" data-reveal style="--delay: 440ms">
           <span class="author-seal" aria-hidden="true">花</span>
           <p>Designed &amp; curated by <strong>Hanazar Ochikawa</strong></p>
@@ -973,7 +1016,7 @@ h2 {
       </div>
     </section>
 
-    <section class="links-section" aria-labelledby="links-title">
+    <section class="links-section" id="destinations" aria-labelledby="links-title">
       <header class="section-heading" data-reveal>
         <div>
           <p class="section-kicker">Selected destinations</p>
@@ -1056,7 +1099,7 @@ h2 {
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.1.0</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.2.0</p>
   </footer>
 </div>
 
@@ -1082,6 +1125,8 @@ let resumeAfterVisibility = false;
 let resumeAfterPageShow = false;
 let sfxEnabled = true;
 let bgmEnabled = false;
+let sfxIntentRevision = 0;
+let bgmIntentRevision = 0;
 
 function finishIntro() {
   clearTimeout(introTimer);
@@ -1110,6 +1155,8 @@ reduceMotion.addEventListener?.('change', event => {
 });
 
 function disableAudioControls() {
+  sfxEnabled = false;
+  bgmEnabled = false;
   [soundToggle, bgmToggle].forEach(button => {
     button.disabled = true;
     button.setAttribute('aria-pressed', 'false');
@@ -1289,31 +1336,43 @@ function syncAudioControls() {
 }
 
 soundToggle.addEventListener('click', async () => {
-  if (sfxEnabled) {
-    sfxEnabled = false;
+  const intentRevision = ++sfxIntentRevision;
+  const nextEnabled = !sfxEnabled;
+  sfxEnabled = nextEnabled;
+  syncAudioControls();
+  if (!nextEnabled) {
     if (sfxGain) rampGain(sfxGain.gain, 0, 0.04);
-    syncAudioControls();
     return;
   }
   const context = await ensureAudio();
-  if (!context) return;
-  sfxEnabled = true;
+  if (intentRevision !== sfxIntentRevision) return;
+  if (!context) {
+    sfxEnabled = false;
+    if (!soundToggle.disabled) syncAudioControls();
+    return;
+  }
+  if (!sfxEnabled) return;
   rampGain(sfxGain.gain, 1, 0.04);
-  syncAudioControls();
   playSfx('on');
 });
 
 bgmToggle.addEventListener('click', async () => {
-  if (bgmEnabled) {
-    bgmEnabled = false;
+  const intentRevision = ++bgmIntentRevision;
+  const nextEnabled = !bgmEnabled;
+  bgmEnabled = nextEnabled;
+  syncAudioControls();
+  if (!nextEnabled) {
     stopBgm();
-    syncAudioControls();
     return;
   }
   const context = await ensureAudio();
-  if (!context) return;
-  bgmEnabled = true;
-  syncAudioControls();
+  if (intentRevision !== bgmIntentRevision) return;
+  if (!context) {
+    bgmEnabled = false;
+    if (!bgmToggle.disabled) syncAudioControls();
+    return;
+  }
+  if (!bgmEnabled) return;
   playSfx('on');
   startBgm();
 });
@@ -1344,7 +1403,7 @@ document.querySelectorAll('[data-sfx]').forEach(card => {
       card.style.setProperty('--card-y', `${clientY - bounds.top}px`);
       cardFrame = null;
     });
-  });
+  }, { passive: true });
 });
 
 window.addEventListener('pointermove', event => {
