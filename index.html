@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.2.0">
+<meta name="application-version" content="2.3.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -54,10 +54,13 @@ a {
 
 .skip-link {
   position: fixed;
-  top: 1rem;
-  left: 1rem;
+  top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  left: calc(env(safe-area-inset-left, 0px) + 1rem);
   z-index: 200;
-  padding: 0.75rem 1rem;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: 0 1rem;
   border-radius: 999px;
   background: var(--ink);
   color: #090a0d;
@@ -197,8 +200,10 @@ a {
   width: min(100%, 96rem);
   min-height: 100vh;
   margin: 0 auto;
+  padding-top: env(safe-area-inset-top, 0px);
   padding-left: max(clamp(1.25rem, 4vw, 4.5rem), env(safe-area-inset-left, 0px));
   padding-right: max(clamp(1.25rem, 4vw, 4.5rem), env(safe-area-inset-right, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .topbar {
@@ -211,6 +216,7 @@ a {
 
 .brand {
   display: inline-flex;
+  min-height: 2.75rem;
   align-items: center;
   gap: 0.85rem;
   text-decoration: none;
@@ -595,10 +601,12 @@ h2 {
 }
 
 .link-card--featured {
+  --line: rgba(9, 10, 13, 0.18);
   border-color: rgba(255, 118, 87, 0.34);
   background:
     radial-gradient(circle at var(--card-x) var(--card-y), rgba(255, 255, 255, 0.22), transparent 32%),
     linear-gradient(145deg, #d84f34, #ff7959 56%, #ee997f);
+  color: #090a0d;
 }
 
 .link-card--featured::before {
@@ -622,7 +630,7 @@ h2 {
 }
 
 .link-card--featured .card-type {
-  color: rgba(255, 255, 255, 0.72);
+  color: #090a0d;
 }
 
 .card-copy {
@@ -647,7 +655,11 @@ h2 {
 }
 
 .link-card--featured .card-copy p {
-  color: rgba(255, 255, 255, 0.78);
+  color: #090a0d;
+}
+
+.link-card--featured .card-arrow {
+  border-color: rgba(9, 10, 13, 0.28);
 }
 
 .card-bottom {
@@ -932,7 +944,7 @@ h2 {
 </style>
 </noscript>
 </head>
-<body data-version="2.2.0">
+<body data-version="2.3.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <div class="backdrop" aria-hidden="true"></div>
@@ -961,7 +973,7 @@ h2 {
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.2.0 · Link portal
+        v2.3.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效">
@@ -1099,7 +1111,7 @@ h2 {
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.2.0</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.3.0</p>
   </footer>
 </div>
 
@@ -1193,8 +1205,14 @@ function createAudioGraph() {
 async function resumeAudio() {
   try {
     await audioContext.resume();
+    if (document.hidden && audioContext.state === 'running') {
+      resumeAfterVisibility = true;
+      await audioContext.suspend();
+      return false;
+    }
     return audioContext.state === 'running';
   } catch {
+    if (document.hidden) resumeAfterVisibility = true;
     return false;
   }
 }
@@ -1347,6 +1365,7 @@ soundToggle.addEventListener('click', async () => {
   const context = await ensureAudio();
   if (intentRevision !== sfxIntentRevision) return;
   if (!context) {
+    if (document.hidden) return;
     sfxEnabled = false;
     if (!soundToggle.disabled) syncAudioControls();
     return;
@@ -1368,6 +1387,7 @@ bgmToggle.addEventListener('click', async () => {
   const context = await ensureAudio();
   if (intentRevision !== bgmIntentRevision) return;
   if (!context) {
+    if (document.hidden) return;
     bgmEnabled = false;
     if (!bgmToggle.disabled) syncAudioControls();
     return;
@@ -1416,6 +1436,24 @@ window.addEventListener('pointermove', event => {
   });
 }, { passive: true });
 
+async function restoreAudioPlayback() {
+  const sfxRevision = sfxIntentRevision;
+  const bgmRevision = bgmIntentRevision;
+  const context = await ensureAudio();
+  if (!context) {
+    if (document.hidden || soundToggle.disabled) return;
+    if (sfxRevision === sfxIntentRevision) sfxEnabled = false;
+    if (bgmRevision === bgmIntentRevision) {
+      bgmEnabled = false;
+      cleanupBgmVoice(stopBgm({ immediate: true }));
+    }
+    syncAudioControls();
+    return;
+  }
+  if (sfxGain) rampGain(sfxGain.gain, sfxEnabled ? 1 : 0, 0.04);
+  if (context && bgmEnabled && !bgmVoice) startBgm();
+}
+
 document.addEventListener('visibilitychange', async () => {
   if (!audioContext || audioContext.state === 'closed') return;
   if (document.hidden) {
@@ -1427,14 +1465,14 @@ document.addEventListener('visibilitychange', async () => {
   }
   if (resumeAfterVisibility) {
     resumeAfterVisibility = false;
-    await ensureAudio();
+    await restoreAudioPlayback();
   }
 });
 
 window.addEventListener('pageshow', event => {
   if (!event.persisted || !resumeAfterPageShow) return;
   resumeAfterPageShow = false;
-  ensureAudio();
+  restoreAudioPlayback();
 });
 
 window.addEventListener('pagehide', async event => {

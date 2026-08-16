@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.2.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.1.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.0.0.md', import.meta.url)),
 ]);
@@ -77,6 +78,11 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /intentRevision !== sfxIntentRevision/);
   assert.match(html, /intentRevision !== bgmIntentRevision/);
   assert.match(html, /if \(!bgmEnabled\) return;/);
+  assert.match(html, /if \(document\.hidden && audioContext\.state === ['"]running['"]\)/);
+  assert.match(html, /resumeAfterVisibility = true;\s*await audioContext\.suspend\(\);/);
+  assert.match(html, /function restoreAudioPlayback\(/);
+  assert.match(html, /function restoreAudioPlayback\([\s\S]*?if \(!context\)\s*{[\s\S]*?sfxEnabled = false;[\s\S]*?bgmEnabled = false;[\s\S]*?syncAudioControls\(\);/);
+  assert.match(html, /context && bgmEnabled && !bgmVoice/);
 });
 
 test('keeps intro and pointer effects idempotent and input-aware', () => {
@@ -106,14 +112,21 @@ test('guides users to links and handles touch-only browser chrome', () => {
   assert.match(html, /@media\s*\(hover:\s*hover\)\s*and\s*\(pointer:\s*fine\)[\s\S]*?\.link-card:hover/);
   assert.match(html, /safe-area-inset-left/);
   assert.match(html, /\.hero-cta\s*{[\s\S]*?min-height:\s*2\.75rem/);
+  assert.match(html, /\.brand\s*{[\s\S]*?min-height:\s*2\.75rem/);
+  assert.match(html, /\.skip-link\s*{[\s\S]*?min-height:\s*2\.75rem/);
+  assert.match(html, /safe-area-inset-top/);
+  assert.match(html, /safe-area-inset-bottom/);
+  assert.match(html, /\.link-card--featured\s*{[\s\S]*?color:\s*#090a0d/);
+  assert.doesNotMatch(html, /\.link-card--featured \.card-(?:type|copy p)\s*{\s*color:\s*rgba\(255/);
 });
 
-test('publishes v2.2.0 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.2\.0"/);
-  assert.match(html, /v2\.2\.0/);
-  assert.match(readme, /v2\.2\.0/);
-  assert.match(announcement, /v2\.2\.0/);
-  assert.match(announcement, /history\/v2\.1\.0\.md/);
+test('publishes v2.3.0 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.3\.0"/);
+  assert.match(html, /v2\.3\.0/);
+  assert.match(readme, /v2\.3\.0/);
+  assert.match(announcement, /v2\.3\.0/);
+  assert.match(announcement, /history\/v2\.2\.0\.md/);
+  assert.match(historyV22, /v2\.2\.0/);
   assert.match(historyV21, /v2\.1\.0/);
   assert.match(historyV20, /v2\.0\.0/);
 });
