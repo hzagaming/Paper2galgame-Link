@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.3.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.2.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.1.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.0.0.md', import.meta.url)),
@@ -35,6 +36,8 @@ test('keeps the four destination links and protects new tabs', () => {
 
 test('uses semantic landmarks and accessible controls', () => {
   assert.match(html, /<main\b/);
+  assert.match(html, /<main id="main" tabindex="-1">/);
+  assert.match(html, /main:focus\s*{\s*outline:\s*none;/);
   assert.match(html, /<h1\b/);
   assert.match(html, /<nav\b[^>]*aria-label=/);
   assert.match(html, /id="soundToggle"[^>]*aria-pressed="true"/);
@@ -87,8 +90,15 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
 
 test('keeps intro and pointer effects idempotent and input-aware', () => {
   assert.match(html, /intro\.classList\.contains\(['"]is-exiting['"]\)/);
+  assert.ok(
+    html.indexOf("window.addEventListener('keydown', finishIntro)") < html.indexOf('if (reduceMotion.matches)'),
+  );
   assert.match(html, /event\.pointerType\s*===\s*['"]mouse['"]/);
-  assert.match(html, /event\.detail\s*===\s*0/);
+  assert.match(html, /card\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*ensureAudio\(\)\.then/);
+  assert.doesNotMatch(
+    html,
+    /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?card\.addEventListener\('pointerdown'/,
+  );
   assert.match(html, /requestAnimationFrame\(/);
 });
 
@@ -100,7 +110,7 @@ test('does not depend on the previous signed image or legacy widgets', () => {
 test('constrains the hero and header controls on narrow screens', () => {
   assert.match(html, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.sound-toggle span\s*{[\s\S]*?display:\s*none/);
-  assert.match(html, /@media\s*\(max-height:\s*500px\)\s*and\s*\(orientation:\s*landscape\)/);
+  assert.match(html, /@media\s*\(min-width:\s*35rem\)\s*and\s*\(max-height:\s*500px\)\s*and\s*\(orientation:\s*landscape\)/);
   assert.match(html, /\.sound-toggle\s*{[\s\S]*?min-height:\s*2\.75rem/);
 });
 
@@ -116,16 +126,26 @@ test('guides users to links and handles touch-only browser chrome', () => {
   assert.match(html, /\.skip-link\s*{[\s\S]*?min-height:\s*2\.75rem/);
   assert.match(html, /safe-area-inset-top/);
   assert.match(html, /safe-area-inset-bottom/);
+  assert.match(html, /\.skip-link\s*{[\s\S]*?transform:\s*translateY\(calc\(-100% - env\(safe-area-inset-top,\s*0px\) - 1rem\)\)/);
   assert.match(html, /\.link-card--featured\s*{[\s\S]*?color:\s*#090a0d/);
+  assert.match(html, /\.link-card--featured:focus-visible\s*{\s*outline-color:\s*#090a0d;/);
   assert.doesNotMatch(html, /\.link-card--featured \.card-(?:type|copy p)\s*{\s*color:\s*rgba\(255/);
 });
 
-test('publishes v2.3.0 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.3\.0"/);
-  assert.match(html, /v2\.3\.0/);
-  assert.match(readme, /v2\.3\.0/);
-  assert.match(announcement, /v2\.3\.0/);
-  assert.match(announcement, /history\/v2\.2\.0\.md/);
+test('finishes the intro when restoring from the back-forward cache', () => {
+  assert.match(
+    html,
+    /window\.addEventListener\('pageshow', event => \{\s*if \(!event\.persisted\) return;\s*finishIntro\(\{ immediate: true \}\);/,
+  );
+});
+
+test('publishes v2.4.0 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.4\.0"/);
+  assert.match(html, /v2\.4\.0/);
+  assert.match(readme, /v2\.4\.0/);
+  assert.match(announcement, /v2\.4\.0/);
+  assert.match(announcement, /history\/v2\.3\.0\.md/);
+  assert.match(historyV23, /v2\.3\.0/);
   assert.match(historyV22, /v2\.2\.0/);
   assert.match(historyV21, /v2\.1\.0/);
   assert.match(historyV20, /v2\.0\.0/);

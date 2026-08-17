@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.3.0">
+<meta name="application-version" content="2.4.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -64,7 +64,7 @@ a {
   border-radius: 999px;
   background: var(--ink);
   color: #090a0d;
-  transform: translateY(-180%);
+  transform: translateY(calc(-100% - env(safe-area-inset-top, 0px) - 1rem));
   transition: transform 180ms ease;
 }
 
@@ -726,6 +726,14 @@ h2 {
   outline-offset: 5px;
 }
 
+.link-card--featured:focus-visible {
+  outline-color: #090a0d;
+}
+
+main:focus {
+  outline: none;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .sound-toggle:hover,
   .hero-cta:hover {
@@ -885,7 +893,7 @@ h2 {
   }
 }
 
-@media (max-height: 500px) and (orientation: landscape) {
+@media (min-width: 35rem) and (max-height: 500px) and (orientation: landscape) {
   .topbar {
     min-height: 4.75rem;
   }
@@ -944,7 +952,7 @@ h2 {
 </style>
 </noscript>
 </head>
-<body data-version="2.3.0">
+<body data-version="2.4.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <div class="backdrop" aria-hidden="true"></div>
@@ -973,7 +981,7 @@ h2 {
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.3.0 · Link portal
+        v2.4.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效">
@@ -994,7 +1002,7 @@ h2 {
     </div>
   </header>
 
-  <main id="main">
+  <main id="main" tabindex="-1">
     <section class="hero" id="home" aria-labelledby="hero-title">
       <div class="hero-copy">
         <p class="eyebrow" data-reveal style="--delay: 180ms">An independent gateway</p>
@@ -1111,7 +1119,7 @@ h2 {
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.3.0</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.4.0</p>
   </footer>
 </div>
 
@@ -1140,15 +1148,23 @@ let bgmEnabled = false;
 let sfxIntentRevision = 0;
 let bgmIntentRevision = 0;
 
-function finishIntro() {
+function finishIntro({ immediate = false } = {}) {
   clearTimeout(introTimer);
-  if (intro.hidden || intro.classList.contains('is-exiting')) return;
-  intro.classList.add('is-exiting');
-  document.body.classList.add('is-ready');
-  window.removeEventListener('keydown', finishIntro);
-  introHideTimer = setTimeout(() => { intro.hidden = true; }, reduceMotion.matches ? 0 : 900);
+  if (intro.hidden) return;
+  if (!intro.classList.contains('is-exiting')) {
+    intro.classList.add('is-exiting');
+    document.body.classList.add('is-ready');
+    window.removeEventListener('keydown', finishIntro);
+  }
+  if (!immediate && !reduceMotion.matches) {
+    introHideTimer ||= setTimeout(() => { intro.hidden = true; }, 900);
+    return;
+  }
+  clearTimeout(introHideTimer);
+  intro.hidden = true;
 }
 
+window.addEventListener('keydown', finishIntro);
 if (reduceMotion.matches) {
   finishIntro();
 } else {
@@ -1161,7 +1177,6 @@ intro.addEventListener('pointerdown', () => {
     if (context) playSfx('on');
   });
 }, { once: true });
-window.addEventListener('keydown', finishIntro);
 reduceMotion.addEventListener?.('change', event => {
   if (event.matches) finishIntro();
 });
@@ -1402,17 +1417,10 @@ document.querySelectorAll('[data-sfx]').forEach(card => {
   card.addEventListener('pointerenter', event => {
     if (event.pointerType === 'mouse' && audioContext) playSfx('hover');
   });
-  card.addEventListener('pointerdown', () => {
+  card.addEventListener('click', () => {
     ensureAudio().then(context => {
       if (context) playSfx('open');
     });
-  });
-  card.addEventListener('click', event => {
-    if (event.detail === 0) {
-      ensureAudio().then(context => {
-        if (context) playSfx('open');
-      });
-    }
   });
   card.addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse' || reduceMotion.matches || cardFrame) return;
@@ -1470,7 +1478,9 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 window.addEventListener('pageshow', event => {
-  if (!event.persisted || !resumeAfterPageShow) return;
+  if (!event.persisted) return;
+  finishIntro({ immediate: true });
+  if (!resumeAfterPageShow) return;
   resumeAfterPageShow = false;
   restoreAudioPlayback();
 });
