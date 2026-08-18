@@ -4,7 +4,7 @@ A cinematic, independent link portal designed and curated by **Hanazar Ochikawa*
 
 🔗 Live website: https://hzagaming.github.io/Paper2galgame-Link/
 
-Current release: **v2.4.0** · [Release announcement](ANNOUNCEMENT.md) · [v2.3.0 archive](docs/announcements/history/v2.3.0.md) · [v2.2.0 archive](docs/announcements/history/v2.2.0.md) · [v2.1.0 archive](docs/announcements/history/v2.1.0.md) · [v2.0.0 archive](docs/announcements/history/v2.0.0.md)
+Current release: **v2.5.0** · [Release announcement](ANNOUNCEMENT.md) · [v2.4.0 archive](docs/announcements/history/v2.4.0.md) · [v2.3.0 archive](docs/announcements/history/v2.3.0.md) · [v2.2.0 archive](docs/announcements/history/v2.2.0.md) · [v2.1.0 archive](docs/announcements/history/v2.1.0.md) · [v2.0.0 archive](docs/announcements/history/v2.0.0.md)
 
 ## Features
 
@@ -15,6 +15,7 @@ Current release: **v2.4.0** · [Release announcement](ANNOUNCEMENT.md) · [v2.3.
 - First-screen destination CTA and touch-safe interactions
 - Safe-area-aware layout and high-contrast featured content
 - Notch-safe skip navigation and narrow-landscape reflow
+- Text-zoom-safe intrinsic reflow and fault-tolerant audio graphs
 - Reduced-motion support
 - Responsive portrait and short-landscape layouts
 - Zero runtime dependencies

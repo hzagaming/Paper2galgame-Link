@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.4.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.3.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.2.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.1.0.md', import.meta.url)),
@@ -32,6 +33,7 @@ test('keeps the four destination links and protects new tabs', () => {
   }
 
   assert.equal((html.match(/rel="noopener noreferrer"/g) ?? []).length, 4);
+  assert.equal((html.match(/aria-label="[^"]*在新标签页打开[^"]*"/g) ?? []).length, 4);
 });
 
 test('uses semantic landmarks and accessible controls', () => {
@@ -86,6 +88,10 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /function restoreAudioPlayback\(/);
   assert.match(html, /function restoreAudioPlayback\([\s\S]*?if \(!context\)\s*{[\s\S]*?sfxEnabled = false;[\s\S]*?bgmEnabled = false;[\s\S]*?syncAudioControls\(\);/);
   assert.match(html, /context && bgmEnabled && !bgmVoice/);
+  assert.match(html, /const failedContext = audioContext;[\s\S]*?failedContext\?\.close\(\)/);
+  assert.match(html, /function playTone\([\s\S]*?catch\s*{[\s\S]*?oscillator\?\.disconnect\(\)/);
+  assert.match(html, /function startBgm\([\s\S]*?catch\s*{[\s\S]*?return false;/);
+  assert.match(html, /if \(!startBgm\(\)\)\s*{\s*bgmEnabled = false;\s*syncAudioControls\(\);/);
 });
 
 test('keeps intro and pointer effects idempotent and input-aware', () => {
@@ -100,6 +106,8 @@ test('keeps intro and pointer effects idempotent and input-aware', () => {
     /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?card\.addEventListener\('pointerdown'/,
   );
   assert.match(html, /requestAnimationFrame\(/);
+  assert.match(html, /\.backdrop::after\s*{[\s\S]*?transform:\s*translate3d\(/);
+  assert.doesNotMatch(html, /\.backdrop::after\s*{[\s\S]*?transition:\s*margin/);
 });
 
 test('does not depend on the previous signed image or legacy widgets', () => {
@@ -108,10 +116,22 @@ test('does not depend on the previous signed image or legacy widgets', () => {
 });
 
 test('constrains the hero and header controls on narrow screens', () => {
-  assert.match(html, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
   assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.sound-toggle span\s*{[\s\S]*?display:\s*none/);
   assert.match(html, /@media\s*\(min-width:\s*35rem\)\s*and\s*\(max-height:\s*500px\)\s*and\s*\(orientation:\s*landscape\)/);
   assert.match(html, /\.sound-toggle\s*{[\s\S]*?min-height:\s*2\.75rem/);
+  assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.link-card\s*{[\s\S]*?flex-basis:\s*100%/);
+});
+
+test('reflows controls and cards when text is enlarged', () => {
+  assert.match(html, /\.topbar\s*{[\s\S]*?flex-wrap:\s*wrap/);
+  assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.site-shell\s*{[\s\S]*?max\(16px,\s*env\(safe-area-inset-left/);
+  assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.sound-toggle\s*{[\s\S]*?width:\s*44px;[\s\S]*?min-height:\s*44px/);
+  assert.match(html, /@media\s*\(max-width:\s*360px\)[\s\S]*?\.brand-copy\s*{\s*display:\s*none/);
+  assert.match(html, /\.link-grid\s*{[\s\S]*?display:\s*flex;[\s\S]*?flex-wrap:\s*wrap/);
+  assert.match(html, /\.link-card\s*{[\s\S]*?flex:\s*1 1 calc\(50% - 0\.5rem\);[\s\S]*?min-width:\s*min\(100%,\s*20rem\)/);
+  assert.match(html, /\.card-copy h3\s*{[\s\S]*?overflow-wrap:\s*anywhere/);
+  assert.match(html, /\.hero-cta\s*{[\s\S]*?max-width:\s*100%/);
+  assert.match(html, /@media\s*\(min-width:\s*35rem\)[\s\S]*?\.hero-copy,[\s\S]*?\.hero-art\s*{\s*flex-basis:\s*15rem/);
 });
 
 test('guides users to links and handles touch-only browser chrome', () => {
@@ -139,12 +159,13 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.4.0 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.4\.0"/);
-  assert.match(html, /v2\.4\.0/);
-  assert.match(readme, /v2\.4\.0/);
-  assert.match(announcement, /v2\.4\.0/);
-  assert.match(announcement, /history\/v2\.3\.0\.md/);
+test('publishes v2.5.0 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.5\.0"/);
+  assert.match(html, /v2\.5\.0/);
+  assert.match(readme, /v2\.5\.0/);
+  assert.match(announcement, /v2\.5\.0/);
+  assert.match(announcement, /history\/v2\.4\.0\.md/);
+  assert.match(historyV24, /v2\.4\.0/);
   assert.match(historyV23, /v2\.3\.0/);
   assert.match(historyV22, /v2\.2\.0/);
   assert.match(historyV21, /v2\.1\.0/);

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.4.0">
+<meta name="application-version" content="2.5.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -102,12 +102,15 @@ a {
 
 .backdrop::after {
   content: "";
+  inset: auto;
+  top: 0;
+  left: 0;
   width: 38rem;
   height: 38rem;
-  margin: calc(var(--pointer-y) - 19rem) 0 0 calc(var(--pointer-x) - 19rem);
   border-radius: 50%;
   background: radial-gradient(circle, rgba(158, 232, 239, 0.1), transparent 66%);
-  transition: margin 140ms linear;
+  transform: translate3d(calc(var(--pointer-x) - 19rem), calc(var(--pointer-y) - 19rem), 0);
+  transition: transform 140ms linear;
 }
 
 .intro {
@@ -161,7 +164,7 @@ a {
 .intro-name {
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(3.8rem, 11.6vw, 11rem);
+  font-size: clamp(48px, 12vw, 11rem);
   font-weight: 400;
   line-height: 0.78;
   letter-spacing: -0.075em;
@@ -208,8 +211,10 @@ a {
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem 1rem;
   min-height: 6.75rem;
   border-bottom: 1px solid var(--line);
 }
@@ -260,6 +265,7 @@ a {
 
 .top-actions {
   gap: 1.6rem;
+  margin-left: auto;
 }
 
 .audio-controls {
@@ -324,15 +330,16 @@ a {
 }
 
 .hero {
-  display: grid;
+  display: flex;
   min-height: min(51rem, calc(100svh - 6.75rem));
-  grid-template-columns: minmax(0, 1.25fr) minmax(20rem, 0.75fr);
+  flex-wrap: wrap;
   align-items: center;
   gap: clamp(2rem, 6vw, 8rem);
   padding: clamp(5rem, 9vw, 9.5rem) 0;
 }
 
 .hero-copy {
+  flex: 1.25 1 24rem;
   min-width: 0;
 }
 
@@ -383,6 +390,7 @@ h1 .title-accent {
 
 .hero-cta {
   display: inline-flex;
+  max-width: 100%;
   min-height: 2.75rem;
   align-items: center;
   gap: 0.85rem;
@@ -396,10 +404,17 @@ h1 .title-accent {
   letter-spacing: 0.14em;
   text-decoration: none;
   text-transform: uppercase;
+  text-align: center;
   transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
 }
 
+.hero-cta span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .hero-cta svg {
+  flex: 0 0 auto;
   width: 0.9rem;
   transition: transform 220ms var(--ease);
 }
@@ -447,7 +462,9 @@ h1 .title-accent {
 .hero-art {
   position: relative;
   display: grid;
+  flex: 0.75 1 20rem;
   width: min(100%, 31rem);
+  max-width: 31rem;
   aspect-ratio: 1;
   place-items: center;
   justify-self: end;
@@ -536,11 +553,17 @@ h1 .title-accent {
 }
 
 .section-heading {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: end;
+  justify-content: space-between;
   gap: 1.5rem;
   margin-bottom: clamp(2rem, 4vw, 3.5rem);
+}
+
+.section-heading > div {
+  min-width: 0;
+  flex: 1 1 28rem;
 }
 
 .section-kicker {
@@ -566,8 +589,8 @@ h2 {
 }
 
 .link-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
 }
 
@@ -576,6 +599,8 @@ h2 {
   --card-y: 50%;
   position: relative;
   display: grid;
+  flex: 1 1 calc(50% - 0.5rem);
+  min-width: min(100%, 20rem);
   min-height: 20rem;
   grid-template-rows: auto 1fr auto;
   overflow: hidden;
@@ -617,6 +642,7 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
 }
 
 .card-index {
@@ -626,7 +652,10 @@ h2 {
 }
 
 .card-type {
+  min-width: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .link-card--featured .card-type {
@@ -644,6 +673,7 @@ h2 {
   font-size: clamp(2.1rem, 4vw, 3.8rem);
   font-weight: 400;
   letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
 }
 
 .card-copy p {
@@ -652,6 +682,7 @@ h2 {
   color: var(--muted);
   font-size: 0.88rem;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .link-card--featured .card-copy p {
@@ -666,19 +697,23 @@ h2 {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   padding-top: 1.2rem;
   border-top: 1px solid var(--line);
 }
 
 .card-action {
+  min-width: 0;
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+  overflow-wrap: anywhere;
 }
 
 .card-arrow {
   display: grid;
+  flex: 0 0 auto;
   width: 2.8rem;
   aspect-ratio: 1;
   place-items: center;
@@ -702,7 +737,9 @@ h2 {
 }
 
 .footer p {
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .footer-note {
@@ -735,6 +772,10 @@ main:focus {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .backdrop::after {
+    will-change: transform;
+  }
+
   .sound-toggle:hover,
   .hero-cta:hover {
     border-color: rgba(255, 255, 255, 0.3);
@@ -793,20 +834,44 @@ main:focus {
 
 @media (max-width: 900px) {
   .hero {
-    grid-template-columns: minmax(0, 1fr);
     padding-top: 6rem;
+  }
+
+  .hero-cta {
+    gap: 12px;
+    padding-inline: 16px;
+  }
+
+  .hero-cta svg {
+    width: 18px;
+  }
+
+  .hero-copy,
+  .hero-art {
+    flex-basis: 100%;
   }
 
   .hero-art {
     width: min(76vw, 29rem);
+    max-width: 29rem;
     justify-self: center;
+    margin-inline: auto;
+  }
+
+  .art-label {
+    right: 50%;
+    bottom: 8%;
+    width: max-content;
+    max-width: 100%;
+    text-align: center;
+    transform: translateX(50%);
   }
 }
 
 @media (max-width: 720px) {
   .site-shell {
-    padding-left: max(1rem, env(safe-area-inset-left, 0px));
-    padding-right: max(1rem, env(safe-area-inset-right, 0px));
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
   }
 
   .topbar {
@@ -824,7 +889,9 @@ main:focus {
   }
 
   .sound-toggle {
-    width: 2.75rem;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
     justify-content: center;
     padding: 0;
   }
@@ -840,7 +907,7 @@ main:focus {
   }
 
   h1 {
-    font-size: clamp(3.4rem, 18vw, 4.8rem);
+    font-size: min(18vw, 4.8rem);
   }
 
   h1 .title-accent {
@@ -851,25 +918,28 @@ main:focus {
     font-size: 0.95rem;
   }
 
-  .section-heading {
-    grid-template-columns: 1fr;
+  .art-core {
+    font-size: min(12vw, 4.6rem);
   }
 
   .link-count {
     display: none;
   }
 
-  .link-grid {
-    grid-template-columns: 1fr;
-  }
-
   .link-card {
+    min-width: 0;
+    flex-basis: 100%;
     min-height: 17rem;
-    border-radius: 1.25rem;
+    padding: 24px;
+    border-radius: 20px;
   }
 
   .card-copy {
     margin-top: 3rem;
+  }
+
+  .card-arrow {
+    width: 44px;
   }
 
   .footer {
@@ -884,12 +954,18 @@ main:focus {
   }
 
   .brand-mark {
-    width: 2.45rem;
+    width: 44px;
   }
 
   .brand-copy strong {
     font-size: 0.66rem;
     letter-spacing: 0.12em;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand-copy {
+    display: none;
   }
 }
 
@@ -900,14 +976,24 @@ main:focus {
 
   .hero {
     min-height: auto;
-    grid-template-columns: minmax(0, 1.2fr) minmax(12rem, 0.8fr);
     gap: 2rem;
     padding: 3rem 0 4rem;
   }
 
+  .hero-copy,
+  .hero-art {
+    flex-basis: 15rem;
+  }
+
   .hero-art {
     width: min(35vw, 18rem);
+    max-width: min(35vw, 18rem);
     justify-self: end;
+    margin-left: auto;
+  }
+
+  .art-core {
+    font-size: min(5vw, 3rem);
   }
 
   .lede {
@@ -952,7 +1038,7 @@ main:focus {
 </style>
 </noscript>
 </head>
-<body data-version="2.4.0">
+<body data-version="2.5.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <div class="backdrop" aria-hidden="true"></div>
@@ -981,7 +1067,7 @@ main:focus {
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.4.0 · Link portal
+        v2.5.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效">
@@ -1046,7 +1132,7 @@ main:focus {
       </header>
 
       <nav class="link-grid" aria-label="主要链接">
-        <a class="link-card link-card--featured" href="https://paper2gal.com" target="_blank" rel="noopener noreferrer" data-sfx>
+        <a class="link-card link-card--featured" href="https://paper2gal.com" target="_blank" rel="noopener noreferrer" aria-label="Paper2Galgame 官方网站（在新标签页打开）" data-sfx>
           <div class="card-top">
             <span class="card-index">01</span>
             <span class="card-type">Official destination</span>
@@ -1063,7 +1149,7 @@ main:focus {
           </div>
         </a>
 
-        <a class="link-card" href="https://www.bilibili.com/video/BV1HSU8B3EcK/" target="_blank" rel="noopener noreferrer" data-sfx>
+        <a class="link-card" href="https://www.bilibili.com/video/BV1HSU8B3EcK/" target="_blank" rel="noopener noreferrer" aria-label="Paper2Galgame 精选视频（在新标签页打开）" data-sfx>
           <div class="card-top">
             <span class="card-index">02</span>
             <span class="card-type">Featured video</span>
@@ -1080,7 +1166,7 @@ main:focus {
           </div>
         </a>
 
-        <a class="link-card" href="https://www.bilibili.com/video/BV1UT42167xb/" target="_blank" rel="noopener noreferrer" data-sfx>
+        <a class="link-card" href="https://www.bilibili.com/video/BV1UT42167xb/" target="_blank" rel="noopener noreferrer" aria-label="免费网站创建指南（在新标签页打开）" data-sfx>
           <div class="card-top">
             <span class="card-index">03</span>
             <span class="card-type">Build your own</span>
@@ -1097,7 +1183,7 @@ main:focus {
           </div>
         </a>
 
-        <a class="link-card" href="https://www.bilibili.com/video/BV1b3cEzQEHb/" target="_blank" rel="noopener noreferrer" data-sfx>
+        <a class="link-card" href="https://www.bilibili.com/video/BV1b3cEzQEHb/" target="_blank" rel="noopener noreferrer" aria-label="Daniel 独立条目（在新标签页打开）" data-sfx>
           <div class="card-top">
             <span class="card-index">04</span>
             <span class="card-type">Side story</span>
@@ -1119,7 +1205,7 @@ main:focus {
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.4.0</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.5.0</p>
   </footer>
 </div>
 
@@ -1208,10 +1294,15 @@ function createAudioGraph() {
     masterGain.connect(audioContext.destination);
     return true;
   } catch {
+    const failedContext = audioContext;
     audioContext = null;
     masterGain = null;
     sfxGain = null;
     bgmBus = null;
+    try {
+      const closing = failedContext?.close();
+      closing?.catch?.(() => {});
+    } catch {}
     disableAudioControls();
     return false;
   }
@@ -1255,30 +1346,44 @@ async function ensureAudio() {
 }
 
 function rampGain(parameter, target, duration) {
-  const now = audioContext.currentTime;
-  parameter.cancelScheduledValues(now);
-  parameter.setValueAtTime(parameter.value, now);
-  parameter.linearRampToValueAtTime(target, now + duration);
+  if (!audioContext) return false;
+  try {
+    const now = audioContext.currentTime;
+    parameter.cancelScheduledValues(now);
+    parameter.setValueAtTime(parameter.value, now);
+    parameter.linearRampToValueAtTime(target, now + duration);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function playTone(frequency, duration, volume, delay = 0) {
   if (!sfxEnabled || audioContext?.state !== 'running') return;
-  const start = audioContext.currentTime + delay;
-  const oscillator = audioContext.createOscillator();
-  const gain = audioContext.createGain();
-  oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(frequency, start);
-  oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.16, start + duration);
-  gain.gain.setValueAtTime(0.0001, start);
-  gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
-  gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-  oscillator.connect(gain).connect(sfxGain);
-  oscillator.onended = () => {
-    oscillator.disconnect();
-    gain.disconnect();
-  };
-  oscillator.start(start);
-  oscillator.stop(start + duration + 0.02);
+  let oscillator;
+  let gain;
+  try {
+    const start = audioContext.currentTime + delay;
+    oscillator = audioContext.createOscillator();
+    gain = audioContext.createGain();
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * 1.16, start + duration);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain).connect(sfxGain);
+    oscillator.onended = () => {
+      try { oscillator.disconnect(); } catch {}
+      try { gain.disconnect(); } catch {}
+    };
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
+  } catch {
+    try { oscillator?.stop(); } catch {}
+    try { oscillator?.disconnect(); } catch {}
+    try { gain?.disconnect(); } catch {}
+  }
 }
 
 function playSfx(type) {
@@ -1297,49 +1402,59 @@ function cleanupBgmVoice(voice) {
   if (!voice || voice.cleaned) return;
   voice.cleaned = true;
   voice.oscillators.forEach(({ oscillator, gain }) => {
-    oscillator.disconnect();
-    gain.disconnect();
+    try { oscillator?.disconnect(); } catch {}
+    try { gain?.disconnect(); } catch {}
   });
-  voice.lfo.disconnect();
-  voice.lfoDepth.disconnect();
-  voice.filter.disconnect();
-  voice.mix.disconnect();
+  try { voice.lfo?.disconnect(); } catch {}
+  try { voice.lfoDepth?.disconnect(); } catch {}
+  try { voice.filter?.disconnect(); } catch {}
+  try { voice.mix?.disconnect(); } catch {}
 }
 
 function startBgm() {
-  if (!bgmEnabled || bgmVoice || audioContext?.state !== 'running') return;
-  const mix = audioContext.createGain();
-  const filter = audioContext.createBiquadFilter();
-  const lfo = audioContext.createOscillator();
-  const lfoDepth = audioContext.createGain();
+  if (!bgmEnabled || bgmVoice || audioContext?.state !== 'running') return Boolean(bgmVoice);
   const frequencies = [110, 164.81, 220];
   const levels = [0.18, 0.12, 0.08];
-  const now = audioContext.currentTime;
+  const voice = { mix: null, filter: null, lfo: null, lfoDepth: null, oscillators: [] };
+  try {
+    const now = audioContext.currentTime;
+    voice.mix = audioContext.createGain();
+    voice.filter = audioContext.createBiquadFilter();
+    voice.lfo = audioContext.createOscillator();
+    voice.lfoDepth = audioContext.createGain();
+    voice.mix.gain.value = 0;
+    voice.filter.type = 'lowpass';
+    voice.filter.frequency.value = 720;
+    voice.filter.Q.value = 0.7;
+    voice.lfo.frequency.value = 0.075;
+    voice.lfoDepth.gain.value = 130;
+    voice.filter.connect(voice.mix).connect(bgmBus);
+    voice.lfo.connect(voice.lfoDepth).connect(voice.filter.frequency);
 
-  mix.gain.value = 0;
-  filter.type = 'lowpass';
-  filter.frequency.value = 720;
-  filter.Q.value = 0.7;
-  lfo.frequency.value = 0.075;
-  lfoDepth.gain.value = 130;
-  filter.connect(mix).connect(bgmBus);
-  lfo.connect(lfoDepth).connect(filter.frequency);
+    frequencies.forEach((frequency, index) => {
+      const item = { oscillator: audioContext.createOscillator(), gain: null };
+      voice.oscillators.push(item);
+      item.gain = audioContext.createGain();
+      item.oscillator.type = index === 1 ? 'triangle' : 'sine';
+      item.oscillator.frequency.value = frequency;
+      item.oscillator.detune.value = [-7, 4, 0][index];
+      item.gain.gain.value = levels[index];
+      item.oscillator.connect(item.gain).connect(voice.filter);
+      item.oscillator.start(now);
+    });
 
-  const oscillators = frequencies.map((frequency, index) => {
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = index === 1 ? 'triangle' : 'sine';
-    oscillator.frequency.value = frequency;
-    oscillator.detune.value = [-7, 4, 0][index];
-    gain.gain.value = levels[index];
-    oscillator.connect(gain).connect(filter);
-    oscillator.start(now);
-    return { oscillator, gain };
-  });
-
-  lfo.start(now);
-  bgmVoice = { mix, filter, lfo, lfoDepth, oscillators };
-  rampGain(mix.gain, 0.055, 1.8);
+    voice.lfo.start(now);
+    bgmVoice = voice;
+    if (!rampGain(voice.mix.gain, 0.055, 1.8)) throw new Error('BGM gain unavailable');
+    return true;
+  } catch {
+    if (bgmVoice === voice) bgmVoice = null;
+    [...voice.oscillators.map(item => item.oscillator), voice.lfo].forEach(source => {
+      try { source?.stop(); } catch {}
+    });
+    cleanupBgmVoice(voice);
+    return false;
+  }
 }
 
 function stopBgm({ immediate = false } = {}) {
@@ -1356,8 +1471,13 @@ function stopBgm({ immediate = false } = {}) {
       remaining -= 1;
       if (remaining === 0) cleanupBgmVoice(voice);
     };
-    source.stop(stopAt);
+    try {
+      source.stop(stopAt);
+    } catch {
+      remaining -= 1;
+    }
   });
+  if (remaining === 0) cleanupBgmVoice(voice);
   return voice;
 }
 
@@ -1408,8 +1528,12 @@ bgmToggle.addEventListener('click', async () => {
     return;
   }
   if (!bgmEnabled) return;
+  if (!startBgm()) {
+    bgmEnabled = false;
+    syncAudioControls();
+    return;
+  }
   playSfx('on');
-  startBgm();
 });
 
 document.querySelectorAll('[data-sfx]').forEach(card => {
@@ -1459,7 +1583,10 @@ async function restoreAudioPlayback() {
     return;
   }
   if (sfxGain) rampGain(sfxGain.gain, sfxEnabled ? 1 : 0, 0.04);
-  if (context && bgmEnabled && !bgmVoice) startBgm();
+  if (context && bgmEnabled && !bgmVoice && !startBgm()) {
+    bgmEnabled = false;
+    syncAudioControls();
+  }
 }
 
 document.addEventListener('visibilitychange', async () => {
