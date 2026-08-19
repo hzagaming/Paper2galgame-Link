@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.5.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.4.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.3.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.2.0.md', import.meta.url)),
@@ -50,6 +51,7 @@ test('uses semantic landmarks and accessible controls', () => {
 
 test('ships an animated intro with a reduced-motion escape hatch', () => {
   assert.match(html, /class="intro"/);
+  assert.match(html, /\.intro\[hidden\]\s*{\s*display:\s*none/);
   assert.match(html, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
   assert.match(html, /matchMedia\(['"]\(prefers-reduced-motion: reduce\)['"]\)/);
   assert.match(html, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\[data-reveal\]\s*{[\s\S]*?opacity:\s*1\s*!important;[\s\S]*?animation:\s*none\s*!important;/);
@@ -131,6 +133,8 @@ test('reflows controls and cards when text is enlarged', () => {
   assert.match(html, /\.link-card\s*{[\s\S]*?flex:\s*1 1 calc\(50% - 0\.5rem\);[\s\S]*?min-width:\s*min\(100%,\s*20rem\)/);
   assert.match(html, /\.card-copy h3\s*{[\s\S]*?overflow-wrap:\s*anywhere/);
   assert.match(html, /\.hero-cta\s*{[\s\S]*?max-width:\s*100%/);
+  assert.match(html, /\.author-line\s*{[\s\S]*?flex-wrap:\s*wrap/);
+  assert.match(html, /\.author-line p\s*{[\s\S]*?flex:\s*1 1 12rem;[\s\S]*?min-width:\s*min\(100%,\s*12rem\);[\s\S]*?overflow-wrap:\s*anywhere/);
   assert.match(html, /@media\s*\(min-width:\s*35rem\)[\s\S]*?\.hero-copy,[\s\S]*?\.hero-art\s*{\s*flex-basis:\s*15rem/);
 });
 
@@ -159,12 +163,13 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.5.0 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.5\.0"/);
-  assert.match(html, /v2\.5\.0/);
-  assert.match(readme, /v2\.5\.0/);
-  assert.match(announcement, /v2\.5\.0/);
-  assert.match(announcement, /history\/v2\.4\.0\.md/);
+test('publishes v2.6.0 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.6\.0"/);
+  assert.match(html, /v2\.6\.0/);
+  assert.match(readme, /v2\.6\.0/);
+  assert.match(announcement, /v2\.6\.0/);
+  assert.match(announcement, /history\/v2\.5\.0\.md/);
+  assert.match(historyV25, /v2\.5\.0/);
   assert.match(historyV24, /v2\.4\.0/);
   assert.match(historyV23, /v2\.3\.0/);
   assert.match(historyV22, /v2\.2\.0/);
