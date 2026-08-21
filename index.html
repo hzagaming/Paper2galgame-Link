@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.6.0">
+<meta name="application-version" content="2.7.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -147,6 +147,14 @@ a {
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
+}
+
+.eyebrow,
+.lede,
+.section-kicker,
+h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .intro-kicker {
@@ -543,7 +551,7 @@ h1 .title-accent {
   display: grid;
   gap: 0.3rem;
   color: var(--muted);
-  font-size: 0.64rem;
+  font-size: clamp(10px, 0.64rem, 14px);
   letter-spacing: 0.18em;
   text-align: right;
   text-transform: uppercase;
@@ -868,7 +876,7 @@ main:focus {
 
   .art-label {
     right: 50%;
-    bottom: 8%;
+    bottom: 4%;
     width: max-content;
     max-width: 100%;
     text-align: center;
@@ -1046,7 +1054,7 @@ main:focus {
 </style>
 </noscript>
 </head>
-<body data-version="2.6.0">
+<body data-version="2.7.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <div class="backdrop" aria-hidden="true"></div>
@@ -1075,7 +1083,7 @@ main:focus {
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.6.0 · Link portal
+        v2.7.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效">
@@ -1213,7 +1221,7 @@ main:focus {
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.6.0</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.7.0</p>
   </footer>
 </div>
 
@@ -1235,6 +1243,7 @@ let sfxGain;
 let bgmBus;
 let bgmVoice;
 let resumePromise;
+let suspendPromise;
 let resumeAfterVisibility = false;
 let resumeAfterPageShow = false;
 let sfxEnabled = true;
@@ -1316,12 +1325,31 @@ function createAudioGraph() {
   }
 }
 
+function suspendAudioPlayback() {
+  const context = audioContext;
+  if (!context || context.state === 'closed') return Promise.resolve();
+  if (suspendPromise) return suspendPromise;
+  let pending;
+  try {
+    pending = context.suspend();
+  } catch {
+    return Promise.resolve();
+  }
+  const tracked = Promise.resolve(pending)
+    .catch(() => {})
+    .finally(() => {
+      if (suspendPromise === tracked) suspendPromise = null;
+    });
+  suspendPromise = tracked;
+  return tracked;
+}
+
 async function resumeAudio() {
   try {
     await audioContext.resume();
     if (document.hidden && audioContext.state === 'running') {
       resumeAfterVisibility = true;
-      await audioContext.suspend();
+      await suspendAudioPlayback();
       return false;
     }
     return audioContext.state === 'running';
@@ -1577,6 +1605,7 @@ window.addEventListener('pointermove', event => {
 }, { passive: true });
 
 async function restoreAudioPlayback() {
+  if (suspendPromise) await suspendPromise;
   const sfxRevision = sfxIntentRevision;
   const bgmRevision = bgmIntentRevision;
   const context = await ensureAudio();
@@ -1602,7 +1631,7 @@ document.addEventListener('visibilitychange', async () => {
   if (document.hidden) {
     resumeAfterVisibility = audioContext.state === 'running' || audioContext.state === 'interrupted';
     if (audioContext.state === 'running') {
-      try { await audioContext.suspend(); } catch {}
+      await suspendAudioPlayback();
     }
     return;
   }
@@ -1626,7 +1655,7 @@ window.addEventListener('pagehide', async event => {
   if (!audioContext || audioContext.state === 'closed') return;
   if (event.persisted) {
     resumeAfterPageShow = audioContext.state === 'running' || audioContext.state === 'interrupted';
-    try { await audioContext.suspend(); } catch {}
+    await suspendAudioPlayback();
     return;
   }
   resumeAfterPageShow = false;

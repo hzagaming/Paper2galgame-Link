@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.6.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.5.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.4.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.3.0.md', import.meta.url)),
@@ -86,8 +87,14 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /intentRevision !== bgmIntentRevision/);
   assert.match(html, /if \(!bgmEnabled\) return;/);
   assert.match(html, /if \(document\.hidden && audioContext\.state === ['"]running['"]\)/);
-  assert.match(html, /resumeAfterVisibility = true;\s*await audioContext\.suspend\(\);/);
+  assert.match(html, /resumeAfterVisibility = true;\s*await suspendAudioPlayback\(\);/);
   assert.match(html, /function restoreAudioPlayback\(/);
+  assert.match(html, /let suspendPromise;/);
+  assert.match(html, /function suspendAudioPlayback\(/);
+  assert.match(html, /function resumeAudio\([\s\S]*?await suspendAudioPlayback\(\);/);
+  assert.match(html, /function restoreAudioPlayback\([\s\S]*?if \(suspendPromise\) await suspendPromise;/);
+  assert.match(html, /visibilitychange[\s\S]*?await suspendAudioPlayback\(\);/);
+  assert.match(html, /pagehide[\s\S]*?await suspendAudioPlayback\(\);/);
   assert.match(html, /function restoreAudioPlayback\([\s\S]*?if \(!context\)\s*{[\s\S]*?sfxEnabled = false;[\s\S]*?bgmEnabled = false;[\s\S]*?syncAudioControls\(\);/);
   assert.match(html, /context && bgmEnabled && !bgmVoice/);
   assert.match(html, /const failedContext = audioContext;[\s\S]*?failedContext\?\.close\(\)/);
@@ -136,6 +143,9 @@ test('reflows controls and cards when text is enlarged', () => {
   assert.match(html, /\.author-line\s*{[\s\S]*?flex-wrap:\s*wrap/);
   assert.match(html, /\.author-line p\s*{[\s\S]*?flex:\s*1 1 12rem;[\s\S]*?min-width:\s*min\(100%,\s*12rem\);[\s\S]*?overflow-wrap:\s*anywhere/);
   assert.match(html, /@media\s*\(min-width:\s*35rem\)[\s\S]*?\.hero-copy,[\s\S]*?\.hero-art\s*{\s*flex-basis:\s*15rem/);
+  assert.match(html, /\.eyebrow,[\s\S]*?\.lede,[\s\S]*?\.section-kicker,[\s\S]*?h2\s*{[\s\S]*?min-width:\s*0;[\s\S]*?overflow-wrap:\s*anywhere/);
+  assert.match(html, /\.art-label\s*{[\s\S]*?font-size:\s*clamp\(10px,\s*0\.64rem,\s*14px\)/);
+  assert.match(html, /@media\s*\(max-width:\s*900px\)[\s\S]*?\.art-label\s*{[\s\S]*?bottom:\s*4%/);
 });
 
 test('guides users to links and handles touch-only browser chrome', () => {
@@ -163,12 +173,13 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.6.0 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.6\.0"/);
-  assert.match(html, /v2\.6\.0/);
-  assert.match(readme, /v2\.6\.0/);
-  assert.match(announcement, /v2\.6\.0/);
-  assert.match(announcement, /history\/v2\.5\.0\.md/);
+test('publishes v2.7.0 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.7\.0"/);
+  assert.match(html, /v2\.7\.0/);
+  assert.match(readme, /v2\.7\.0/);
+  assert.match(announcement, /v2\.7\.0/);
+  assert.match(announcement, /history\/v2\.6\.0\.md/);
+  assert.match(historyV26, /v2\.6\.0/);
   assert.match(historyV25, /v2\.5\.0/);
   assert.match(historyV24, /v2\.4\.0/);
   assert.match(historyV23, /v2\.3\.0/);
