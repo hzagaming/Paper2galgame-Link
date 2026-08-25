@@ -21,6 +21,16 @@
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --pointer-x: 50vw;
   --pointer-y: 50vh;
+  --pointer-drift-x: 0px;
+  --pointer-drift-y: 0px;
+  --pointer-counter-x: 0px;
+  --pointer-counter-y: 0px;
+  --pointer-angle: 0deg;
+  --pointer-tail: 0px;
+  --scroll-progress: 0;
+  --hero-shift: 0px;
+  --art-rx: 0deg;
+  --art-ry: 0deg;
 }
 
 * {
@@ -29,6 +39,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 7rem;
 }
 
 body {
@@ -40,6 +51,13 @@ body {
   color: var(--ink);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
+  isolation: isolate;
+  overscroll-behavior-y: none;
+}
+
+::selection {
+  background: var(--accent);
+  color: #090a0d;
 }
 
 button,
@@ -65,11 +83,170 @@ a {
   background: var(--ink);
   color: #090a0d;
   transform: translateY(calc(-100% - env(safe-area-inset-top, 0px) - 1rem));
-  transition: transform 180ms ease;
 }
 
 .skip-link:focus {
   transform: translateY(0);
+}
+
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 150;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scroll-progress span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-soft) 48%, var(--cyan));
+  box-shadow: 0 0 1.2rem rgba(158, 232, 239, 0.7);
+  transform: scaleX(var(--scroll-progress));
+  transform-origin: left;
+  transition: transform 80ms linear;
+}
+
+.pointer-lens {
+  --lens-size: 2.45rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  display: none;
+  width: var(--lens-size);
+  aspect-ratio: 1;
+  border: 1px solid rgba(158, 232, 239, 0.46);
+  border-radius: 50%;
+  box-shadow: 0 0 2rem rgba(158, 232, 239, 0.12), inset 0 0 1.2rem rgba(255, 255, 255, 0.05);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(var(--pointer-x), var(--pointer-y), 0) translate(-50%, -50%);
+  transition: width 380ms var(--ease), opacity 180ms ease, border-color 260ms ease, box-shadow 320ms ease;
+  will-change: width, transform;
+}
+
+.pointer-lens::before,
+.pointer-lens::after {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  background: currentColor;
+  content: "";
+  opacity: 0.5;
+  transform: translate(-50%, -50%);
+}
+
+.pointer-lens::before {
+  width: 1.1rem;
+  height: 1px;
+}
+
+.pointer-lens::after {
+  width: 1px;
+  height: 1.1rem;
+}
+
+.pointer-lens span {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 0.3rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  box-shadow: 0 0 1rem var(--accent);
+  transform: translate(-50%, -50%);
+}
+
+.pointer-lens span::after {
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  width: var(--pointer-tail);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(158, 232, 239, 0.72));
+  box-shadow: 0 0 0.7rem rgba(158, 232, 239, 0.35);
+  content: "";
+  opacity: 0.8;
+  transform: translateY(-50%) rotate(var(--pointer-angle));
+  transform-origin: right center;
+  transition: width 70ms linear, opacity 120ms ease;
+  will-change: width, transform;
+}
+
+body.has-pointer .pointer-lens {
+  opacity: 0.72;
+}
+
+body.is-pointer-interactive .pointer-lens {
+  --lens-size: 4.55rem;
+  border-color: rgba(255, 118, 87, 0.7);
+  box-shadow: 0 0 2.6rem rgba(255, 118, 87, 0.22), inset 0 0 1.4rem rgba(255, 255, 255, 0.08);
+}
+
+body.is-pointer-down .pointer-lens {
+  --lens-size: 1.75rem;
+}
+
+.scene-rail {
+  position: fixed;
+  top: 50%;
+  right: max(1.1rem, env(safe-area-inset-right, 0px));
+  z-index: 30;
+  display: none;
+  justify-items: center;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-family: Georgia, serif;
+  font-size: 0.72rem;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+
+.scene-rail span {
+  transition: color 360ms ease, opacity 360ms ease, transform 500ms var(--ease);
+}
+
+.scene-rail span:last-child {
+  opacity: 0.42;
+}
+
+.scene-rail span:first-child,
+body.is-destination-scene .scene-rail span:last-child {
+  color: var(--accent-soft);
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+body.is-destination-scene .scene-rail span:first-child {
+  color: var(--muted);
+  opacity: 0.42;
+  transform: scale(1);
+}
+
+.scene-rail i {
+  position: relative;
+  display: block;
+  width: 1px;
+  height: 6rem;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.scene-rail i::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(var(--accent), var(--cyan));
+  box-shadow: 0 0 1rem rgba(158, 232, 239, 0.7);
+  content: "";
+  transform: scaleY(var(--scroll-progress));
+  transform-origin: top;
+  transition: transform 80ms linear;
 }
 
 .backdrop,
@@ -82,11 +259,50 @@ a {
 
 .backdrop {
   z-index: -2;
+  contain: strict;
   overflow: hidden;
   background:
     radial-gradient(circle at 82% 12%, rgba(89, 55, 255, 0.2), transparent 30%),
     radial-gradient(circle at 9% 74%, rgba(255, 118, 87, 0.14), transparent 28%),
     linear-gradient(145deg, #0d0e13 0%, #090a0d 48%, #111217 100%);
+}
+
+.aurora,
+.noise {
+  position: absolute;
+  pointer-events: none;
+}
+
+.aurora {
+  width: 56vmax;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(80px);
+  mix-blend-mode: screen;
+  opacity: 0.12;
+  will-change: transform;
+}
+
+.aurora--warm {
+  top: 18%;
+  left: 0;
+  background: radial-gradient(circle, rgba(255, 118, 87, 0.76), transparent 66%);
+  animation: auroraDriftWarm 18s ease-in-out infinite alternate;
+}
+
+.aurora--cool {
+  top: -30vmax;
+  right: 0;
+  background: radial-gradient(circle, rgba(88, 48, 255, 0.8), rgba(158, 232, 239, 0.2) 38%, transparent 68%);
+  animation: auroraDriftCool 24s ease-in-out infinite alternate;
+}
+
+.noise {
+  inset: 0;
+  opacity: 0.035;
+  background-image: repeating-radial-gradient(circle at 30% 40%, #fff 0 0.45px, transparent 0.6px 3px);
+  background-size: 5px 5px;
+  animation: noiseShift 480ms steps(2) infinite;
 }
 
 .backdrop::before {
@@ -120,9 +336,36 @@ a {
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: #f0ece3;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(255, 118, 87, 0.2), transparent 28%),
+    linear-gradient(135deg, #f3efe7, #e8e1d6);
   color: #0b0c0f;
   transition: transform 900ms var(--ease), border-radius 900ms var(--ease);
+}
+
+.intro::before {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(11, 12, 15, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 12, 15, 0.08) 1px, transparent 1px);
+  background-size: min(9vw, 7rem) min(9vw, 7rem);
+  content: "";
+  mask-image: linear-gradient(135deg, black, transparent 68%);
+  animation: introGridDrift 8s linear infinite;
+}
+
+.intro::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8vw;
+  width: 1px;
+  background: rgba(11, 12, 15, 0.18);
+  content: "";
+  transform: scaleY(0);
+  transform-origin: top;
+  animation: introRule 1.2s var(--ease) 160ms forwards;
 }
 
 .intro[hidden] {
@@ -134,8 +377,37 @@ a {
   transform: translateY(-110%);
 }
 
+.intro.is-exiting .intro-inner,
+.intro.is-exiting .intro-chrome {
+  opacity: 0;
+  transform: scale(0.96) translateY(-2rem);
+}
+
 .intro-inner {
+  position: relative;
+  z-index: 1;
   width: min(86vw, 76rem);
+  transition: opacity 480ms ease, transform 700ms var(--ease);
+}
+
+.intro-chrome {
+  position: absolute;
+  inset: max(1.25rem, 4vw);
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-content: space-between;
+  color: rgba(11, 12, 15, 0.58);
+  font-size: clamp(9px, 0.62rem, 12px);
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  pointer-events: none;
+  text-transform: uppercase;
+  transition: opacity 420ms ease, transform 700ms var(--ease);
+}
+
+.intro-chrome span:nth-child(even) {
+  text-align: right;
 }
 
 .intro-kicker,
@@ -162,7 +434,9 @@ h2 {
   align-items: center;
   gap: 0.8rem;
   margin: 0 0 1.2rem;
+  font-size: clamp(10px, 0.68rem, 14px);
   opacity: 0;
+  overflow-wrap: anywhere;
   animation: introFade 600ms var(--ease) 120ms forwards;
 }
 
@@ -194,9 +468,16 @@ h2 {
   animation-delay: 160ms;
 }
 
+.intro-progress-wrap {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2.4rem;
+}
+
 .intro-progress {
   height: 1px;
-  margin-top: 2.4rem;
   overflow: hidden;
   background: rgba(11, 12, 15, 0.2);
 }
@@ -211,6 +492,14 @@ h2 {
   animation: introProgress 1.45s var(--ease) 280ms forwards;
 }
 
+.intro-counter {
+  min-width: 3ch;
+  font-family: Georgia, serif;
+  font-size: clamp(11px, 0.78rem, 16px);
+  font-style: italic;
+  text-align: right;
+}
+
 .site-shell {
   width: min(100%, 96rem);
   min-height: 100vh;
@@ -222,6 +511,9 @@ h2 {
 }
 
 .topbar {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 40;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -229,6 +521,17 @@ h2 {
   gap: 0.75rem 1rem;
   min-height: 6.75rem;
   border-bottom: 1px solid var(--line);
+  transition: background 320ms ease, border-color 320ms ease, border-radius 320ms var(--ease), box-shadow 320ms ease, padding 320ms var(--ease);
+}
+
+body.is-scrolled .topbar {
+  padding-inline: 1rem;
+  border-color: rgba(255, 255, 255, 0.15);
+  border-radius: 0 0 1.2rem 1.2rem;
+  background: rgba(9, 10, 13, 0.72);
+  box-shadow: 0 1.2rem 3rem rgba(0, 0, 0, 0.24);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
 .brand {
@@ -302,6 +605,10 @@ h2 {
 }
 
 .sound-toggle {
+  --magnet-x: 0px;
+  --magnet-y: 0px;
+  --control-lift: 0px;
+  position: relative;
   display: inline-flex;
   min-width: 2.75rem;
   min-height: 2.75rem;
@@ -313,6 +620,8 @@ h2 {
   background: rgba(255, 255, 255, 0.045);
   color: var(--ink);
   cursor: pointer;
+  overflow: hidden;
+  transform: translate3d(var(--magnet-x), calc(var(--magnet-y) - var(--control-lift)), 0);
   transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
 }
 
@@ -341,16 +650,67 @@ h2 {
   opacity: 0.2;
 }
 
+.audio-meter {
+  display: inline-flex;
+  height: 0.8rem;
+  align-items: end;
+  gap: 2px;
+}
+
+.audio-meter i {
+  width: 2px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cyan);
+  opacity: 0.28;
+  transform: scaleY(0.25);
+  transform-origin: bottom;
+}
+
+#bgmToggle[aria-pressed="true"] .audio-meter i {
+  opacity: 0.92;
+  animation: meterBounce 720ms ease-in-out infinite alternate;
+}
+
+#bgmToggle[aria-pressed="true"] .audio-meter i:nth-child(2) {
+  animation-delay: -380ms;
+  animation-duration: 540ms;
+}
+
+#bgmToggle[aria-pressed="true"] .audio-meter i:nth-child(3) {
+  animation-delay: -160ms;
+  animation-duration: 860ms;
+}
+
 .hero {
+  position: relative;
   display: flex;
   min-height: min(51rem, calc(100svh - 6.75rem));
   flex-wrap: wrap;
   align-items: center;
   gap: clamp(2rem, 6vw, 8rem);
   padding: clamp(5rem, 9vw, 9.5rem) 0;
+  isolation: isolate;
+}
+
+.hero::before {
+  position: absolute;
+  top: 50%;
+  right: 3%;
+  z-index: -1;
+  width: clamp(160px, 24vw, 352px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 50%;
+  box-shadow: 0 0 8rem rgba(88, 48, 255, 0.06), inset 0 0 6rem rgba(158, 232, 239, 0.025);
+  content: "";
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 .hero-copy {
+  position: relative;
+  z-index: 2;
   flex: 1.25 1 24rem;
   min-width: 0;
 }
@@ -382,6 +742,21 @@ h1 {
 
 h1 span {
   display: block;
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  transform: translateX(-0.18em);
+}
+
+.is-ready h1.is-visible span {
+  animation: titleSlice 1s var(--ease) forwards;
+}
+
+.is-ready h1.is-visible span:nth-child(2) {
+  animation-delay: 90ms;
+}
+
+.is-ready h1.is-visible span:nth-child(3) {
+  animation-delay: 170ms;
 }
 
 h1 .title-accent {
@@ -401,6 +776,10 @@ h1 .title-accent {
 }
 
 .hero-cta {
+  --magnet-x: 0px;
+  --magnet-y: 0px;
+  --control-lift: 0px;
+  position: relative;
   display: inline-flex;
   max-width: 100%;
   min-height: 2.75rem;
@@ -417,7 +796,20 @@ h1 .title-accent {
   text-decoration: none;
   text-transform: uppercase;
   text-align: center;
+  overflow: hidden;
+  isolation: isolate;
+  transform: translate3d(var(--magnet-x), calc(var(--magnet-y) - var(--control-lift)), 0);
   transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
+}
+
+.hero-cta::before {
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  background: linear-gradient(105deg, transparent 25%, rgba(255, 255, 255, 0.16) 48%, transparent 72%);
+  content: "";
+  transform: translateX(-120%);
+  transition: transform 720ms var(--ease);
 }
 
 .hero-cta span {
@@ -484,6 +876,18 @@ h1 .title-accent {
   aspect-ratio: 1;
   place-items: center;
   justify-self: end;
+  perspective: 1000px;
+}
+
+.art-stage {
+  position: relative;
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  transform: translate3d(0, var(--hero-shift), 0) rotateX(var(--art-rx)) rotateY(var(--art-ry));
+  transform-style: preserve-3d;
+  transition: transform 260ms var(--ease);
 }
 
 .orbit,
@@ -526,6 +930,49 @@ h1 .title-accent {
   box-shadow: 0 0 2rem var(--accent);
 }
 
+.orbit-ring {
+  position: absolute;
+  inset: 17%;
+  border: 1px dashed rgba(158, 232, 239, 0.24);
+  border-radius: 50%;
+  animation: orbitSpinReverse 15s linear infinite;
+  translate: var(--pointer-drift-x) var(--pointer-drift-y);
+  transition: translate 240ms ease-out;
+}
+
+.orbit-ring::before,
+.orbit-ring::after {
+  position: absolute;
+  width: 0.42rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 1.4rem rgba(158, 232, 239, 0.9);
+  content: "";
+}
+
+.orbit-ring::before {
+  top: 12%;
+  left: 8%;
+}
+
+.orbit-ring::after {
+  right: 3%;
+  bottom: 25%;
+  width: 0.25rem;
+}
+
+.art-scan {
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: conic-gradient(from 110deg, transparent 0 72%, rgba(158, 232, 239, 0.18), transparent 82%);
+  mask-image: radial-gradient(circle, transparent 0 62%, black 63% 64%, transparent 65%);
+  animation: scanSpin 8s linear infinite;
+  translate: var(--pointer-counter-x) var(--pointer-counter-y);
+  transition: translate 320ms ease-out;
+}
+
 .art-core {
   position: relative;
   z-index: 1;
@@ -542,11 +989,31 @@ h1 .title-accent {
   font-family: Georgia, serif;
   font-size: clamp(2.2rem, 5vw, 4.6rem);
   font-style: italic;
+  overflow: hidden;
+  transform: translateZ(2rem);
+  animation: coreBreathe 4.8s ease-in-out infinite;
+}
+
+.art-core::before {
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.42) 50%, transparent 60%);
+  content: "";
+  transform: translateX(-70%) rotate(18deg);
+  animation: coreGlint 5.4s var(--ease) infinite;
+}
+
+.art-core::after {
+  position: absolute;
+  inset: 10%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50%;
+  content: "";
 }
 
 .art-label {
   position: absolute;
-  right: 0;
+  right: 3%;
   bottom: 18%;
   display: grid;
   gap: 0.3rem;
@@ -555,6 +1022,31 @@ h1 .title-accent {
   letter-spacing: 0.18em;
   text-align: right;
   text-transform: uppercase;
+  transform: translateZ(1rem);
+}
+
+.scroll-cue {
+  position: absolute;
+  right: 0;
+  bottom: 2.4rem;
+  display: block;
+  pointer-events: none;
+}
+
+.scroll-cue i {
+  width: 1px;
+  height: 3rem;
+  overflow: hidden;
+  background: var(--line);
+}
+
+.scroll-cue i::after {
+  display: block;
+  width: 100%;
+  height: 45%;
+  background: var(--cyan);
+  content: "";
+  animation: scrollCue 1.8s var(--ease) infinite;
 }
 
 .art-label strong {
@@ -563,9 +1055,23 @@ h1 .title-accent {
 }
 
 .links-section {
+  position: relative;
   padding: clamp(5rem, 9vw, 9rem) 0;
   border-top: 1px solid var(--line);
-  scroll-margin-top: 1rem;
+  scroll-margin-top: 8rem;
+}
+
+.links-section::before {
+  position: absolute;
+  top: 12%;
+  right: 0;
+  z-index: -1;
+  width: 46vw;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(158, 232, 239, 0.055), transparent 68%);
+  content: "";
+  pointer-events: none;
 }
 
 .section-heading {
@@ -596,12 +1102,47 @@ h2 {
   letter-spacing: -0.055em;
 }
 
+h2 span {
+  display: block;
+}
+
+.is-ready .section-heading.is-visible h2 span {
+  animation: sectionTitleSlice 1s var(--ease) 120ms both;
+}
+
 .link-count {
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+}
+
+.motion-marquee {
+  position: relative;
+  margin: 0 0 clamp(2rem, 4vw, 3.5rem);
+  overflow: hidden;
+  border-block: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(244, 240, 232, 0.34);
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+
+.motion-marquee > div {
+  display: flex;
+  width: max-content;
+  padding: 0.9rem 0;
+  animation: marqueeFlow 24s linear infinite;
+  will-change: transform;
+}
+
+.motion-marquee span {
+  flex: 0 0 auto;
+  width: min(78vw, 62rem);
+  height: 0.6rem;
+  margin-right: 3rem;
+  background:
+    radial-gradient(circle, var(--accent-soft) 0 2px, transparent 2.5px) 0 50% / 9rem 100% repeat-x,
+    repeating-linear-gradient(90deg, rgba(158, 232, 239, 0.42) 0 4.5rem, transparent 4.5rem 9rem) 0 50% / auto 1px no-repeat;
 }
 
 .link-grid {
@@ -613,6 +1154,9 @@ h2 {
 .link-card {
   --card-x: 50%;
   --card-y: 50%;
+  --card-rx: 0deg;
+  --card-ry: 0deg;
+  --card-lift: 0px;
   position: relative;
   display: grid;
   flex: 1 1 calc(50% - 0.5rem);
@@ -628,6 +1172,8 @@ h2 {
     var(--surface);
   text-decoration: none;
   isolation: isolate;
+  transform: perspective(1000px) rotateX(var(--card-rx)) rotateY(var(--card-ry)) translateY(var(--card-lift));
+  transform-style: preserve-3d;
   transition: transform 420ms var(--ease), border-color 320ms ease, box-shadow 420ms var(--ease);
 }
 
@@ -639,6 +1185,17 @@ h2 {
   content: "";
   opacity: 0;
   transition: opacity 320ms ease;
+}
+
+.link-card::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at var(--card-x) var(--card-y), rgba(255, 255, 255, 0.26), transparent 32%);
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease;
 }
 
 .link-card--featured {
@@ -659,12 +1216,27 @@ h2 {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  transform: translateZ(1.2rem);
 }
 
 .card-index {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
   font-family: Georgia, serif;
   font-size: 1.2rem;
   font-style: italic;
+  transition: transform 480ms var(--ease), letter-spacing 480ms var(--ease);
+}
+
+.card-index::after {
+  width: 0.34rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 0.8rem rgba(158, 232, 239, 0.7);
+  content: "";
+  animation: cardSignal 2.4s ease-in-out infinite;
 }
 
 .card-type {
@@ -672,6 +1244,7 @@ h2 {
   color: var(--muted);
   overflow-wrap: anywhere;
   text-align: right;
+  transition: letter-spacing 520ms var(--ease), opacity 320ms ease;
 }
 
 .link-card--featured .card-type {
@@ -681,6 +1254,7 @@ h2 {
 .card-copy {
   align-self: end;
   margin: 4rem 0 2.6rem;
+  transform: translateZ(1.8rem);
 }
 
 .card-copy h3 {
@@ -690,6 +1264,7 @@ h2 {
   font-weight: 400;
   letter-spacing: -0.045em;
   overflow-wrap: anywhere;
+  transition: letter-spacing 500ms var(--ease), text-shadow 420ms ease, transform 520ms var(--ease);
 }
 
 .card-copy p {
@@ -710,12 +1285,27 @@ h2 {
 }
 
 .card-bottom {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
   padding-top: 1.2rem;
   border-top: 1px solid var(--line);
+  transform: translateZ(1.2rem);
+}
+
+.card-bottom::after {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 28%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  content: "";
+  opacity: 0;
+  transform: translateX(-120%);
+  transition: opacity 220ms ease, transform 900ms var(--ease);
 }
 
 .card-action {
@@ -725,9 +1315,11 @@ h2 {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   overflow-wrap: anywhere;
+  transition: letter-spacing 520ms var(--ease), transform 520ms var(--ease);
 }
 
 .card-arrow {
+  position: relative;
   display: grid;
   flex: 0 0 auto;
   width: 2.8rem;
@@ -738,8 +1330,57 @@ h2 {
   transition: background 240ms ease, color 240ms ease, transform 360ms var(--ease);
 }
 
+.card-arrow::before {
+  position: absolute;
+  inset: 0.35rem;
+  border: 1px dashed currentColor;
+  border-radius: 50%;
+  content: "";
+  opacity: 0;
+  transform: rotate(-90deg) scale(0.4);
+  transition: opacity 260ms ease, transform 520ms var(--ease);
+}
+
 .card-arrow svg {
+  position: relative;
+  z-index: 1;
   width: 1rem;
+  transition: transform 520ms var(--ease);
+}
+
+.link-card:is(:hover, :focus-visible) .card-copy h3 {
+  letter-spacing: -0.025em;
+  text-shadow: 0 0 2.4rem rgba(158, 232, 239, 0.14);
+  transform: translateX(0.16rem);
+}
+
+.link-card:is(:hover, :focus-visible) .card-index {
+  letter-spacing: 0.08em;
+  transform: translateX(0.16rem);
+}
+
+.link-card:is(:hover, :focus-visible) .card-type {
+  letter-spacing: 0.27em;
+  opacity: 0.88;
+}
+
+.link-card:is(:hover, :focus-visible) .card-action {
+  letter-spacing: 0.21em;
+  transform: translateX(0.14rem);
+}
+
+.link-card:is(:hover, :focus-visible) .card-bottom::after {
+  opacity: 1;
+  transform: translateX(360%);
+}
+
+.link-card:is(:hover, :focus-visible) .card-arrow::before {
+  opacity: 0.52;
+  transform: rotate(0) scale(1);
+}
+
+.link-card:is(:hover, :focus-visible) .card-arrow svg {
+  transform: translate(0.12rem, -0.12rem) rotate(4deg);
 }
 
 .footer {
@@ -766,12 +1407,56 @@ h2 {
 
 [data-reveal] {
   opacity: 0;
-  transform: translateY(2rem);
+  filter: blur(10px);
+  scale: 0.985;
+  translate: 0 2rem;
+  transition: opacity 900ms ease, filter 1s ease, scale 1s var(--ease), translate 1s var(--ease);
+  transition-delay: var(--delay, 0ms);
 }
 
-.is-ready [data-reveal] {
-  animation: revealUp 1s var(--ease) forwards;
-  animation-delay: var(--delay, 0ms);
+.is-ready [data-reveal].is-visible {
+  opacity: 1;
+  filter: none;
+  scale: 1;
+  translate: 0;
+}
+
+.link-card[data-reveal] {
+  transition: opacity 900ms ease, filter 1s ease, scale 1s var(--ease), translate 1s var(--ease), transform 180ms ease-out, border-color 320ms ease, box-shadow 420ms var(--ease);
+  transition-delay: var(--delay, 0ms), var(--delay, 0ms), var(--delay, 0ms), var(--delay, 0ms), 0ms, 0ms, 0ms;
+}
+
+.is-ready .link-card.is-visible .card-top {
+  animation: cardLayerIn 820ms var(--ease) calc(var(--delay, 0ms) + 90ms) both;
+}
+
+.is-ready .link-card.is-visible .card-copy {
+  animation: cardLayerIn 900ms var(--ease) calc(var(--delay, 0ms) + 170ms) both;
+}
+
+.is-ready .link-card.is-visible .card-bottom {
+  animation: cardLayerIn 880ms var(--ease) calc(var(--delay, 0ms) + 250ms) both;
+}
+
+.is-ready .link-card.is-visible::before {
+  animation: cardRevealGlow 1.15s var(--ease) calc(var(--delay, 0ms) + 80ms);
+}
+
+.hero-cta[data-reveal] {
+  transition: opacity 900ms ease, filter 1s ease, scale 1s var(--ease), translate 1s var(--ease), border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
+  transition-delay: var(--delay, 0ms), var(--delay, 0ms), var(--delay, 0ms), var(--delay, 0ms), 0ms, 0ms, 0ms;
+}
+
+.interaction-ripple {
+  position: absolute;
+  z-index: 3;
+  width: 1rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.32);
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleBurst 680ms ease-out forwards;
 }
 
 :focus-visible {
@@ -787,16 +1472,35 @@ main:focus {
   outline: none;
 }
 
+@media (min-width: 1100px) {
+  .scene-rail {
+    display: grid;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
+  .pointer-lens {
+    display: block;
+  }
+
   .backdrop::after {
+    will-change: transform;
+  }
+
+  .art-stage,
+  .link-card {
     will-change: transform;
   }
 
   .sound-toggle:hover,
   .hero-cta:hover {
+    --control-lift: 2px;
     border-color: rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.09);
-    transform: translateY(-2px);
+  }
+
+  .hero-cta:hover::before {
+    transform: translateX(120%);
   }
 
   .hero-cta:hover svg {
@@ -804,12 +1508,16 @@ main:focus {
   }
 
   .link-card:hover {
+    --card-lift: -8px;
     border-color: rgba(255, 255, 255, 0.28);
     box-shadow: 0 2rem 5rem rgba(0, 0, 0, 0.28);
-    transform: translateY(-8px);
   }
 
   .link-card:hover::before {
+    opacity: 1;
+  }
+
+  .link-card:hover::after {
     opacity: 1;
   }
 
@@ -832,15 +1540,118 @@ main:focus {
   to { transform: translateX(0); }
 }
 
-@keyframes revealUp {
+@keyframes introGridDrift {
+  to { transform: translate3d(min(9vw, 7rem), min(9vw, 7rem), 0); }
+}
+
+@keyframes introRule {
+  to { transform: scaleY(1); }
+}
+
+@keyframes titleSlice {
   to {
     opacity: 1;
-    transform: translateY(0);
+    clip-path: inset(0 0 0 0);
+    transform: translateX(0);
   }
+}
+
+@keyframes sectionTitleSlice {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    translate: -0.24em 0;
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    translate: 0 0;
+  }
+}
+
+@keyframes cardLayerIn {
+  from {
+    opacity: 0;
+    translate: 0 1.4rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes cardRevealGlow {
+  0%, 100% { opacity: 0; }
+  42% { opacity: 0.88; }
 }
 
 @keyframes orbitSpin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes orbitSpinReverse {
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes scanSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes coreBreathe {
+  50% {
+    box-shadow: 0 2.4rem 7rem rgba(88, 48, 255, 0.3), 0 0 3rem rgba(255, 118, 87, 0.18), inset 0 0 4rem rgba(255, 255, 255, 0.12);
+    transform: translateZ(2.5rem) scale(1.035);
+  }
+}
+
+@keyframes coreGlint {
+  0%, 58% { transform: translateX(-80%) rotate(18deg); }
+  82%, 100% { transform: translateX(80%) rotate(18deg); }
+}
+
+@keyframes meterBounce {
+  from { transform: scaleY(0.25); }
+  to { transform: scaleY(1); }
+}
+
+@keyframes rippleBurst {
+  70% { opacity: 0.28; }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(var(--ripple-scale, 18));
+  }
+}
+
+@keyframes marqueeFlow {
+  to { transform: translateX(-50%); }
+}
+
+@keyframes cardSignal {
+  50% {
+    opacity: 0.38;
+    transform: scale(0.58);
+  }
+}
+
+@keyframes scrollCue {
+  0% { opacity: 0; transform: translateY(-120%); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(220%); }
+}
+
+@keyframes auroraDriftWarm {
+  from { transform: translate3d(-48%, 0, 0) scale(0.92); }
+  to { transform: translate3d(-24%, 12vh, 0) scale(1.12); }
+}
+
+@keyframes auroraDriftCool {
+  from { transform: translate3d(0, 0, 0) scale(0.94); }
+  to { transform: translate3d(-14vw, 20vh, 0) scale(0.82); }
+}
+
+@keyframes noiseShift {
+  from { opacity: 0.025; }
+  to { opacity: 0.045; }
 }
 
 @keyframes statusPulse {
@@ -849,6 +1660,11 @@ main:focus {
 }
 
 @media (max-width: 900px) {
+  .hero::before,
+  .scroll-cue {
+    display: none;
+  }
+
   .hero {
     padding-top: 6rem;
   }
@@ -872,6 +1688,7 @@ main:focus {
     max-width: 29rem;
     justify-self: center;
     margin-inline: auto;
+    overflow: clip;
   }
 
   .art-label {
@@ -899,6 +1716,12 @@ main:focus {
     display: none;
   }
 
+  .brand,
+  .hero-cta,
+  .sound-toggle {
+    min-height: 45px;
+  }
+
   .top-actions,
   .audio-controls {
     gap: 0.45rem;
@@ -907,12 +1730,15 @@ main:focus {
   .sound-toggle {
     width: 44px;
     min-width: 44px;
-    min-height: 44px;
     justify-content: center;
     padding: 0;
   }
 
   .sound-toggle span {
+    display: none;
+  }
+
+  .sound-toggle .audio-meter {
     display: none;
   }
 
@@ -1033,8 +1859,44 @@ main:focus {
 
   [data-reveal] {
     opacity: 1 !important;
+    filter: none !important;
+    scale: 1 !important;
+    translate: none !important;
     transform: none !important;
     animation: none !important;
+  }
+
+  h1 span {
+    opacity: 1 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  h2 span,
+  .link-card .card-top,
+  .link-card .card-copy,
+  .link-card .card-bottom {
+    opacity: 1 !important;
+    clip-path: none !important;
+    translate: none !important;
+    animation: none !important;
+  }
+
+  .art-stage,
+  .link-card,
+  .hero-cta,
+  .sound-toggle {
+    transform: none !important;
+  }
+
+  .aurora,
+  .noise,
+  .scroll-cue {
+    display: none;
+  }
+
+  .pointer-lens {
+    display: none !important;
   }
 
   *,
@@ -1051,22 +1913,40 @@ main:focus {
 <style>
 .intro { display: none; }
 [data-reveal] { opacity: 1; transform: none; }
+h1 span { opacity: 1; clip-path: none; transform: none; }
+.scene-rail { display: none; }
 </style>
 </noscript>
 </head>
 <body data-version="2.7.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
+<div class="scroll-progress" aria-hidden="true"><span></span></div>
+<div class="pointer-lens" aria-hidden="true"><span></span></div>
+<div class="scene-rail" aria-hidden="true"><span>01</span><i></i><span>02</span></div>
 
-<div class="backdrop" aria-hidden="true"></div>
+<div class="backdrop" aria-hidden="true">
+  <span class="aurora aurora--warm"></span>
+  <span class="aurora aurora--cool"></span>
+  <span class="noise"></span>
+</div>
 
 <div class="intro" aria-hidden="true">
+  <div class="intro-chrome">
+    <span>Portal sequence</span>
+    <span>P2G / Entry 01</span>
+    <span>Independent gateway</span>
+    <span>Singapore · 2026</span>
+  </div>
   <div class="intro-inner">
     <p class="intro-kicker">Curated digital entry · 2026</p>
     <p class="intro-name">
       <span>Hanazar</span>
       <span>Ochikawa</span>
     </p>
-    <div class="intro-progress"></div>
+    <div class="intro-progress-wrap">
+      <div class="intro-progress"></div>
+      <span class="intro-counter" id="introCounter">00</span>
+    </div>
   </div>
 </div>
 
@@ -1086,19 +1966,20 @@ main:focus {
         v2.7.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
-        <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效">
+        <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效" data-magnetic data-ripple>
           <svg viewBox="0 0 18 18" aria-hidden="true">
             <path d="M3 7v4h3l4 3V4L6 7H3Z" fill="currentColor"/>
             <path class="sound-wave" d="M12.5 6.2a4 4 0 0 1 0 5.6M14.5 4.5a6.4 6.4 0 0 1 0 9" fill="none" stroke="currentColor" stroke-linecap="round"/>
           </svg>
           <span>SFX ON</span>
         </button>
-        <button id="bgmToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="背景音乐">
+        <button id="bgmToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="背景音乐" data-magnetic data-ripple>
           <svg viewBox="0 0 18 18" aria-hidden="true">
             <path d="M7 4v8.2a2.4 2.4 0 1 1-1-1.9V6l8-2v6.2a2.4 2.4 0 1 1-1-1.9V2.5L7 4Z" fill="currentColor"/>
             <path class="sound-wave" d="M14.8 12.8c.8.6 1.2 1.3 1.2 2.1" fill="none" stroke="currentColor" stroke-linecap="round"/>
           </svg>
           <span>BGM OFF</span>
+          <span class="audio-meter" aria-hidden="true"><i></i><i></i><i></i></span>
         </button>
       </div>
     </div>
@@ -1116,7 +1997,7 @@ main:focus {
         <p class="lede" data-reveal style="--delay: 360ms">
           为 Paper2Galgame 与相关内容建立的一处精致入口。没有复杂导航，只有经过整理的目的地，以及恰到好处的互动。
         </p>
-        <a class="hero-cta" href="#destinations" data-sfx data-reveal style="--delay: 410ms">
+        <a class="hero-cta" href="#destinations" data-sfx data-reveal data-magnetic data-ripple style="--delay: 410ms">
           <span>Explore destinations</span>
           <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M4 9h10M10 5l4 4-4 4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></svg>
         </a>
@@ -1127,28 +2008,40 @@ main:focus {
       </div>
 
       <div class="hero-art" aria-hidden="true" data-reveal style="--delay: 340ms">
-        <div class="orbit">
-          <span class="orbit-node"></span>
+        <div class="art-stage">
+          <div class="orbit">
+            <span class="orbit-node"></span>
+          </div>
+          <div class="orbit-ring"></div>
+          <div class="art-scan"></div>
+          <div class="art-core">P2G</div>
+          <span class="art-label">
+            <span>Digital waypoint</span>
+            <strong>P2G · Entry 01</strong>
+          </span>
         </div>
-        <div class="art-core">P2G</div>
-        <span class="art-label">
-          <span>Digital waypoint</span>
-          <strong>P2G · Entry 01</strong>
-        </span>
       </div>
+      <span class="scroll-cue" aria-hidden="true"><i></i></span>
     </section>
 
     <section class="links-section" id="destinations" aria-labelledby="links-title">
       <header class="section-heading" data-reveal>
         <div>
           <p class="section-kicker">Selected destinations</p>
-          <h2 id="links-title">Choose your next scene.</h2>
+          <h2 id="links-title"><span>Choose your next scene.</span></h2>
         </div>
         <span class="link-count">04 links · External</span>
       </header>
 
+      <div class="motion-marquee" aria-hidden="true" inert data-reveal>
+        <div>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
       <nav class="link-grid" aria-label="主要链接">
-        <a class="link-card link-card--featured" href="https://paper2gal.com" target="_blank" rel="noopener noreferrer" aria-label="Paper2Galgame 官方网站（在新标签页打开）" data-sfx>
+        <a class="link-card link-card--featured" href="https://paper2gal.com" target="_blank" rel="noopener noreferrer" aria-label="Paper2Galgame 官方网站（在新标签页打开）" data-sfx data-reveal data-ripple style="--delay: 40ms">
           <div class="card-top">
             <span class="card-index">01</span>
             <span class="card-type">Official destination</span>
@@ -1165,7 +2058,7 @@ main:focus {
           </div>
         </a>
 
-        <a class="link-card" href="https://www.bilibili.com/video/BV1HSU8B3EcK/" target="_blank" rel="noopener noreferrer" aria-label="Paper2Galgame 精选视频（在新标签页打开）" data-sfx>
+        <a class="link-card" href="https://www.bilibili.com/video/BV1HSU8B3EcK/" target="_blank" rel="noopener noreferrer" aria-label="Paper2Galgame 精选视频（在新标签页打开）" data-sfx data-reveal data-ripple style="--delay: 110ms">
           <div class="card-top">
             <span class="card-index">02</span>
             <span class="card-type">Featured video</span>
@@ -1182,7 +2075,7 @@ main:focus {
           </div>
         </a>
 
-        <a class="link-card" href="https://www.bilibili.com/video/BV1UT42167xb/" target="_blank" rel="noopener noreferrer" aria-label="免费网站创建指南（在新标签页打开）" data-sfx>
+        <a class="link-card" href="https://www.bilibili.com/video/BV1UT42167xb/" target="_blank" rel="noopener noreferrer" aria-label="免费网站创建指南（在新标签页打开）" data-sfx data-reveal data-ripple style="--delay: 180ms">
           <div class="card-top">
             <span class="card-index">03</span>
             <span class="card-type">Build your own</span>
@@ -1199,7 +2092,7 @@ main:focus {
           </div>
         </a>
 
-        <a class="link-card" href="https://www.bilibili.com/video/BV1b3cEzQEHb/" target="_blank" rel="noopener noreferrer" aria-label="Daniel 独立条目（在新标签页打开）" data-sfx>
+        <a class="link-card" href="https://www.bilibili.com/video/BV1b3cEzQEHb/" target="_blank" rel="noopener noreferrer" aria-label="Daniel 独立条目（在新标签页打开）" data-sfx data-reveal data-ripple style="--delay: 250ms">
           <div class="card-top">
             <span class="card-index">04</span>
             <span class="card-type">Side story</span>
@@ -1228,6 +2121,9 @@ main:focus {
 <script>
 const root = document.documentElement;
 const intro = document.querySelector('.intro');
+const introCounter = document.getElementById('introCounter');
+const heroArt = document.querySelector('.hero-art');
+const destinations = document.getElementById('destinations');
 const soundToggle = document.getElementById('soundToggle');
 const bgmToggle = document.getElementById('bgmToggle');
 const soundLabel = soundToggle.querySelector('span');
@@ -1236,7 +2132,14 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const AudioEngine = window.AudioContext || window.webkitAudioContext;
 let introTimer;
 let introHideTimer;
+let introProgressFrame;
+let introStartedAt;
 let pointerFrame;
+let pointerTargetX = innerWidth / 2;
+let pointerTargetY = innerHeight / 2;
+let pointerCurrentX = pointerTargetX;
+let pointerCurrentY = pointerTargetY;
+let scrollFrame;
 let audioContext;
 let masterGain;
 let sfxGain;
@@ -1250,9 +2153,19 @@ let sfxEnabled = true;
 let bgmEnabled = false;
 let sfxIntentRevision = 0;
 let bgmIntentRevision = 0;
+let keyboardNavigation = false;
+
+function updateIntroCounter(timestamp) {
+  introStartedAt ||= timestamp;
+  const progress = Math.min((timestamp - introStartedAt) / 1750, 1);
+  introCounter.textContent = String(Math.round(progress * 100)).padStart(2, '0');
+  if (progress < 1) introProgressFrame = requestAnimationFrame(updateIntroCounter);
+}
 
 function finishIntro({ immediate = false } = {}) {
   clearTimeout(introTimer);
+  cancelAnimationFrame(introProgressFrame);
+  introCounter.textContent = '100';
   if (intro.hidden) return;
   if (!intro.classList.contains('is-exiting')) {
     intro.classList.add('is-exiting');
@@ -1268,9 +2181,14 @@ function finishIntro({ immediate = false } = {}) {
 }
 
 window.addEventListener('keydown', finishIntro);
+window.addEventListener('keydown', event => {
+  if (event.key === 'Tab') keyboardNavigation = true;
+}, true);
+window.addEventListener('pointerdown', () => { keyboardNavigation = false; }, { capture: true, passive: true });
 if (reduceMotion.matches) {
   finishIntro();
 } else {
+  introProgressFrame = requestAnimationFrame(updateIntroCounter);
   introTimer = setTimeout(finishIntro, 1750);
 }
 
@@ -1283,6 +2201,51 @@ intro.addEventListener('pointerdown', () => {
 reduceMotion.addEventListener?.('change', event => {
   if (event.matches) finishIntro();
 });
+
+function initViewportReveals() {
+  const items = [...document.querySelectorAll('[data-reveal]')];
+  items.forEach(item => item.addEventListener('focusin', () => {
+    item.classList.add('is-visible');
+    if (keyboardNavigation) {
+      setTimeout(() => {
+        const scrollBehavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        item.scrollIntoView({ block: 'center' });
+        root.style.scrollBehavior = scrollBehavior;
+      }, 0);
+    }
+  }));
+  if (typeof IntersectionObserver !== 'function' || reduceMotion.matches) {
+    items.forEach(item => item.classList.add('is-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('is-visible');
+      observer.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+  items.forEach(item => observer.observe(item));
+}
+
+function updateScrollMotion() {
+  scrollFrame = null;
+  const scrollLimit = Math.max(document.documentElement.scrollHeight - innerHeight, 1);
+  root.style.setProperty('--scroll-progress', Math.min(Math.max(scrollY / scrollLimit, 0), 1).toFixed(4));
+  root.style.setProperty('--hero-shift', reduceMotion.matches ? '0px' : `${Math.min(scrollY * 0.11, 64)}px`);
+  document.body.classList.toggle('is-scrolled', scrollY > 24);
+  document.body.classList.toggle('is-destination-scene', scrollY + innerHeight * 0.45 >= destinations.offsetTop);
+}
+
+function requestScrollMotion() {
+  if (!scrollFrame) scrollFrame = requestAnimationFrame(updateScrollMotion);
+}
+
+initViewportReveals();
+updateScrollMotion();
+window.addEventListener('scroll', requestScrollMotion, { passive: true });
+window.addEventListener('resize', requestScrollMotion, { passive: true });
 
 function disableAudioControls() {
   sfxEnabled = false;
@@ -1572,37 +2535,207 @@ bgmToggle.addEventListener('click', async () => {
   playSfx('on');
 });
 
-document.querySelectorAll('[data-sfx]').forEach(card => {
-  let cardFrame;
-  card.addEventListener('pointerenter', event => {
+function createRipple(event) {
+  if (reduceMotion.matches) return;
+  const target = event.currentTarget;
+  const bounds = target.getBoundingClientRect();
+  const ripple = document.createElement('span');
+  const pointerX = event.detail ? event.clientX - bounds.left : bounds.width / 2;
+  const pointerY = event.detail ? event.clientY - bounds.top : bounds.height / 2;
+  ripple.className = 'interaction-ripple';
+  ripple.style.left = `${pointerX}px`;
+  ripple.style.top = `${pointerY}px`;
+  ripple.style.setProperty('--ripple-scale', String(Math.hypot(bounds.width, bounds.height) / 7));
+  target.append(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove(), { once: true });
+}
+
+function resetMagnetic(element) {
+  element.style.setProperty('--magnet-x', '0px');
+  element.style.setProperty('--magnet-y', '0px');
+}
+
+document.querySelectorAll('[data-ripple]').forEach(element => {
+  element.addEventListener('click', createRipple);
+});
+
+document.querySelectorAll('[data-magnetic]').forEach(element => {
+  let magneticFrame;
+  const resetMagneticMotion = () => {
+    cancelAnimationFrame(magneticFrame);
+    magneticFrame = null;
+    resetMagnetic(element);
+  };
+  element.addEventListener('pointermove', event => {
+    if (event.pointerType !== 'mouse' || reduceMotion.matches || magneticFrame) return;
+    const { clientX, clientY } = event;
+    magneticFrame = requestAnimationFrame(() => {
+      magneticFrame = null;
+      if (reduceMotion.matches) return;
+      const bounds = element.getBoundingClientRect();
+      element.style.setProperty('--magnet-x', `${((clientX - bounds.left) / bounds.width - 0.5) * 9}px`);
+      element.style.setProperty('--magnet-y', `${((clientY - bounds.top) / bounds.height - 0.5) * 7}px`);
+    });
+  }, { passive: true });
+  element.addEventListener('pointerleave', resetMagneticMotion);
+  element.addEventListener('pointercancel', resetMagneticMotion);
+});
+
+document.querySelectorAll('[data-sfx]').forEach(element => {
+  element.addEventListener('pointerenter', event => {
     if (event.pointerType === 'mouse' && audioContext) playSfx('hover');
   });
-  card.addEventListener('click', () => {
+  element.addEventListener('click', () => {
     ensureAudio().then(context => {
       if (context) playSfx('open');
     });
   });
+});
+
+function resetCardTilt(card) {
+  card.style.setProperty('--card-x', '50%');
+  card.style.setProperty('--card-y', '50%');
+  card.style.setProperty('--card-rx', '0deg');
+  card.style.setProperty('--card-ry', '0deg');
+}
+
+document.querySelectorAll('.link-card').forEach(card => {
+  let cardFrame;
+  const resetCardMotion = () => {
+    cancelAnimationFrame(cardFrame);
+    cardFrame = null;
+    resetCardTilt(card);
+  };
   card.addEventListener('pointermove', event => {
     if (event.pointerType !== 'mouse' || reduceMotion.matches || cardFrame) return;
     const { clientX, clientY } = event;
     cardFrame = requestAnimationFrame(() => {
-      const bounds = card.getBoundingClientRect();
-      card.style.setProperty('--card-x', `${clientX - bounds.left}px`);
-      card.style.setProperty('--card-y', `${clientY - bounds.top}px`);
       cardFrame = null;
+      if (reduceMotion.matches) return;
+      const bounds = card.getBoundingClientRect();
+      const x = (clientX - bounds.left) / bounds.width;
+      const y = (clientY - bounds.top) / bounds.height;
+      card.style.setProperty('--card-x', `${x * 100}%`);
+      card.style.setProperty('--card-y', `${y * 100}%`);
+      card.style.setProperty('--card-rx', `${(0.5 - y) * 7}deg`);
+      card.style.setProperty('--card-ry', `${(x - 0.5) * 9}deg`);
     });
+  }, { passive: true });
+  card.addEventListener('pointerleave', resetCardMotion);
+  card.addEventListener('pointercancel', resetCardMotion);
+});
+
+let artFrame;
+function resetArtTilt() {
+  cancelAnimationFrame(artFrame);
+  artFrame = null;
+  root.style.setProperty('--art-rx', '0deg');
+  root.style.setProperty('--art-ry', '0deg');
+}
+
+heroArt.addEventListener('pointermove', event => {
+  if (event.pointerType !== 'mouse' || reduceMotion.matches || artFrame) return;
+  const { clientX, clientY } = event;
+  artFrame = requestAnimationFrame(() => {
+    artFrame = null;
+    if (reduceMotion.matches) return;
+    const bounds = heroArt.getBoundingClientRect();
+    const x = (clientX - bounds.left) / bounds.width;
+    const y = (clientY - bounds.top) / bounds.height;
+    root.style.setProperty('--art-rx', `${(0.5 - y) * 8}deg`);
+    root.style.setProperty('--art-ry', `${(x - 0.5) * 10}deg`);
+  });
+}, { passive: true });
+heroArt.addEventListener('pointerleave', resetArtTilt);
+heroArt.addEventListener('pointercancel', resetArtTilt);
+
+function updatePointerMotion() {
+  pointerFrame = null;
+  if (reduceMotion.matches) return;
+  const deltaX = pointerTargetX - pointerCurrentX;
+  const deltaY = pointerTargetY - pointerCurrentY;
+  const pointerDistance = Math.hypot(deltaX, deltaY);
+  const pointerAngle = Math.atan2(deltaY, deltaX) * 180 / Math.PI;
+  const pointerSettled = pointerDistance <= 0.2;
+  pointerCurrentX = pointerSettled ? pointerTargetX : pointerCurrentX + deltaX * 0.2;
+  pointerCurrentY = pointerSettled ? pointerTargetY : pointerCurrentY + deltaY * 0.2;
+  const driftX = (pointerCurrentX / Math.max(innerWidth, 1) - 0.5) * 12;
+  const driftY = (pointerCurrentY / Math.max(innerHeight, 1) - 0.5) * 8;
+  root.style.setProperty('--pointer-x', `${pointerCurrentX}px`);
+  root.style.setProperty('--pointer-y', `${pointerCurrentY}px`);
+  root.style.setProperty('--pointer-drift-x', `${driftX}px`);
+  root.style.setProperty('--pointer-drift-y', `${driftY}px`);
+  root.style.setProperty('--pointer-counter-x', `${-driftX * 0.7}px`);
+  root.style.setProperty('--pointer-counter-y', `${-driftY * 0.7}px`);
+  root.style.setProperty('--pointer-angle', `${pointerSettled ? 0 : pointerAngle}deg`);
+  root.style.setProperty('--pointer-tail', `${pointerSettled ? 0 : Math.min(pointerDistance * 0.22, 28)}px`);
+  if (!pointerSettled) {
+    pointerFrame = requestAnimationFrame(updatePointerMotion);
+  }
+}
+
+function requestPointerMotion() {
+  if (!pointerFrame) pointerFrame = requestAnimationFrame(updatePointerMotion);
+}
+
+function resetPointerMotion() {
+  cancelAnimationFrame(pointerFrame);
+  pointerFrame = null;
+  pointerTargetX = innerWidth / 2;
+  pointerTargetY = innerHeight / 2;
+  pointerCurrentX = pointerTargetX;
+  pointerCurrentY = pointerTargetY;
+  root.style.setProperty('--pointer-x', '50vw');
+  root.style.setProperty('--pointer-y', '50vh');
+  root.style.setProperty('--pointer-drift-x', '0px');
+  root.style.setProperty('--pointer-drift-y', '0px');
+  root.style.setProperty('--pointer-counter-x', '0px');
+  root.style.setProperty('--pointer-counter-y', '0px');
+  root.style.setProperty('--pointer-angle', '0deg');
+  root.style.setProperty('--pointer-tail', '0px');
+  document.body.classList.remove('has-pointer', 'is-pointer-interactive', 'is-pointer-down');
+}
+
+window.addEventListener('pointermove', event => {
+  if (reduceMotion.matches || event.pointerType !== 'mouse') return;
+  if (!document.body.classList.contains('has-pointer')) {
+    pointerCurrentX = event.clientX;
+    pointerCurrentY = event.clientY;
+  }
+  pointerTargetX = event.clientX;
+  pointerTargetY = event.clientY;
+  document.body.classList.add('has-pointer');
+  requestPointerMotion();
+}, { passive: true });
+
+document.querySelectorAll('a, button').forEach(element => {
+  element.addEventListener('pointerenter', event => {
+    if (event.pointerType === 'mouse' && !reduceMotion.matches) document.body.classList.add('is-pointer-interactive');
+  }, { passive: true });
+  element.addEventListener('pointerleave', event => {
+    if (event.pointerType === 'mouse') document.body.classList.remove('is-pointer-interactive');
   }, { passive: true });
 });
 
-window.addEventListener('pointermove', event => {
-  if (reduceMotion.matches || event.pointerType !== 'mouse' || pointerFrame) return;
-  const { clientX, clientY } = event;
-  pointerFrame = requestAnimationFrame(() => {
-    root.style.setProperty('--pointer-x', `${clientX}px`);
-    root.style.setProperty('--pointer-y', `${clientY}px`);
-    pointerFrame = null;
-  });
+window.addEventListener('pointerdown', event => {
+  if (event.pointerType === 'mouse' && !reduceMotion.matches) document.body.classList.add('is-pointer-down');
 }, { passive: true });
+window.addEventListener('pointerup', () => document.body.classList.remove('is-pointer-down'), { passive: true });
+window.addEventListener('pointercancel', resetPointerMotion, { passive: true });
+window.addEventListener('blur', resetPointerMotion);
+document.documentElement.addEventListener('pointerleave', event => {
+  if (event.pointerType === 'mouse') resetPointerMotion();
+}, { passive: true });
+
+reduceMotion.addEventListener?.('change', event => {
+  if (!event.matches) return;
+  resetPointerMotion();
+  resetArtTilt();
+  document.querySelectorAll('.link-card').forEach(resetCardTilt);
+  document.querySelectorAll('[data-magnetic]').forEach(resetMagnetic);
+  document.querySelectorAll('[data-reveal]').forEach(element => element.classList.add('is-visible'));
+  updateScrollMotion();
+});
 
 async function restoreAudioPlayback() {
   if (suspendPromise) await suspendPromise;

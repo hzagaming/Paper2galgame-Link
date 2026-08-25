@@ -109,7 +109,7 @@ test('keeps intro and pointer effects idempotent and input-aware', () => {
     html.indexOf("window.addEventListener('keydown', finishIntro)") < html.indexOf('if (reduceMotion.matches)'),
   );
   assert.match(html, /event\.pointerType\s*===\s*['"]mouse['"]/);
-  assert.match(html, /card\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*ensureAudio\(\)\.then/);
+  assert.match(html, /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?element\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*ensureAudio\(\)\.then/);
   assert.doesNotMatch(
     html,
     /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?card\.addEventListener\('pointerdown'/,
@@ -117,6 +117,73 @@ test('keeps intro and pointer effects idempotent and input-aware', () => {
   assert.match(html, /requestAnimationFrame\(/);
   assert.match(html, /\.backdrop::after\s*{[\s\S]*?transform:\s*translate3d\(/);
   assert.doesNotMatch(html, /\.backdrop::after\s*{[\s\S]*?transition:\s*margin/);
+});
+
+test('orchestrates viewport motion, spatial feedback, and live audio visuals', () => {
+  assert.match(html, /class="scroll-progress" aria-hidden="true"/);
+  assert.match(html, /class="aurora aurora--warm"/);
+  assert.match(html, /id="introCounter"/);
+  assert.match(html, /class="audio-meter" aria-hidden="true"/);
+  assert.match(html, /data-magnetic/);
+  assert.equal((html.match(/class="link-card[^"]*"[^>]*data-reveal/g) ?? []).length, 4);
+  assert.match(html, /new IntersectionObserver\(/);
+  assert.match(html, /classList\.add\(['"]is-visible['"]\)/);
+  assert.match(html, /--scroll-progress/);
+  assert.match(html, /function updateScrollMotion\(/);
+  assert.match(html, /Math\.min\(Math\.max\(scrollY \/ scrollLimit, 0\), 1\)/);
+  assert.match(html, /--card-rx/);
+  assert.match(html, /perspective\(\d+px\) rotateX\(var\(--card-rx\)\) rotateY\(var\(--card-ry\)\)/);
+  assert.match(html, /function resetCardTilt\(/);
+  assert.match(html, /cancelAnimationFrame\(cardFrame\);\s*cardFrame = null;\s*resetCardTilt\(card\);/);
+  assert.match(html, /cancelAnimationFrame\(magneticFrame\);\s*magneticFrame = null;\s*resetMagnetic\(element\);/);
+  assert.match(html, /function resetArtTilt\(\)\s*{\s*cancelAnimationFrame\(artFrame\);\s*artFrame = null;/);
+  assert.match(html, /function createRipple\(/);
+  assert.match(html, /ripple\.addEventListener\(['"]animationend['"],\s*\(\)\s*=>\s*ripple\.remove\(\)/);
+  assert.match(html, /if \(typeof IntersectionObserver !== ['"]function['"] \|\| reduceMotion\.matches\)/);
+  assert.match(html, /let keyboardNavigation = false;/);
+  assert.match(html, /event\.key === ['"]Tab['"][\s\S]*?keyboardNavigation = true/);
+  assert.match(html, /item\.addEventListener\(['"]focusin['"],\s*\(\)\s*=>\s*{[\s\S]*?item\.classList\.add\(['"]is-visible['"]\);[\s\S]*?if \(keyboardNavigation\)[\s\S]*?item\.scrollIntoView\(/);
+});
+
+test('layers inertial pointer, scene progress, and kinetic card choreography', () => {
+  assert.match(html, /class="pointer-lens" aria-hidden="true"/);
+  assert.match(html, /class="scene-rail" aria-hidden="true"/);
+  assert.match(html, /class="motion-marquee" aria-hidden="true"/);
+  assert.match(html, /\.scene-rail i::after\s*{[\s\S]*?scaleY\(var\(--scroll-progress\)\)/);
+  assert.match(html, /\.motion-marquee > div\s*{[\s\S]*?animation:\s*marqueeFlow/);
+  assert.match(html, /@keyframes marqueeFlow/);
+  assert.match(html, /function updatePointerMotion\(\)/);
+  assert.match(html, /function resetPointerMotion\(\)\s*{\s*cancelAnimationFrame\(pointerFrame\);\s*pointerFrame = null;/);
+  assert.match(html, /body\.classList\.add\('has-pointer'\)/);
+  assert.match(html, /document\.querySelectorAll\('a, button'\)/);
+  assert.match(html, /--pointer-drift-x/);
+  assert.match(html, /--pointer-counter-x/);
+  assert.match(html, /is-destination-scene/);
+  assert.match(html, /\.link-card:is\(:hover, :focus-visible\) \.card-copy h3/);
+  assert.match(html, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.pointer-lens\s*{\s*display:\s*none\s*!important/);
+});
+
+test('adds pointer velocity and staged section choreography', () => {
+  assert.match(html, /--pointer-angle:\s*0deg/);
+  assert.match(html, /--pointer-tail:\s*0px/);
+  assert.match(html, /Math\.atan2\(deltaY, deltaX\)/);
+  assert.match(html, /Math\.hypot\(deltaX, deltaY\)/);
+  assert.match(html, /const pointerSettled = pointerDistance <= 0\.2;/);
+  assert.match(html, /pointerCurrentX = pointerSettled \? pointerTargetX/);
+  assert.match(html, /setProperty\('--pointer-tail'/);
+  assert.match(html, /<h2 id="links-title"><span>Choose your next scene\.<\/span><\/h2>/);
+  assert.match(html, /\.is-ready \.section-heading\.is-visible h2 span\s*{[\s\S]*?animation:\s*sectionTitleSlice/);
+  assert.match(html, /\.is-ready \.link-card\.is-visible \.card-top\s*{[\s\S]*?animation:\s*cardLayerIn/);
+  assert.match(html, /\.is-ready \.link-card\.is-visible::before\s*{[\s\S]*?animation:\s*cardRevealGlow/);
+  assert.match(html, /@keyframes sectionTitleSlice/);
+  assert.match(html, /@keyframes cardLayerIn/);
+  assert.match(html, /@keyframes cardRevealGlow/);
+  assert.match(html, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?h2 span,[\s\S]*?\.link-card \.card-bottom\s*{[\s\S]*?animation:\s*none\s*!important/);
+});
+
+test('keeps authored HTML and CSS free of browser-repaired structure', () => {
+  assert.doesNotMatch(html, /<span class="brand-copy">[\s\S]*?<\/span>\s*<\/span>\s*<\/a>/);
+  assert.doesNotMatch(html, /main:focus\s*{\s*outline:\s*none;\s*}\s*}\s*\.link-card--featured/);
 });
 
 test('does not depend on the previous signed image or legacy widgets', () => {
@@ -134,7 +201,8 @@ test('constrains the hero and header controls on narrow screens', () => {
 test('reflows controls and cards when text is enlarged', () => {
   assert.match(html, /\.topbar\s*{[\s\S]*?flex-wrap:\s*wrap/);
   assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.site-shell\s*{[\s\S]*?max\(16px,\s*env\(safe-area-inset-left/);
-  assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.sound-toggle\s*{[\s\S]*?width:\s*44px;[\s\S]*?min-height:\s*44px/);
+  assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.brand,[\s\S]*?\.hero-cta,[\s\S]*?\.sound-toggle\s*{\s*min-height:\s*45px/);
+  assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.sound-toggle\s*{[\s\S]*?width:\s*44px;[\s\S]*?min-width:\s*44px/);
   assert.match(html, /@media\s*\(max-width:\s*360px\)[\s\S]*?\.brand-copy\s*{\s*display:\s*none/);
   assert.match(html, /\.link-grid\s*{[\s\S]*?display:\s*flex;[\s\S]*?flex-wrap:\s*wrap/);
   assert.match(html, /\.link-card\s*{[\s\S]*?flex:\s*1 1 calc\(50% - 0\.5rem\);[\s\S]*?min-width:\s*min\(100%,\s*20rem\)/);
