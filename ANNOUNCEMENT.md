@@ -1,18 +1,16 @@
-# v2.8.0：沉浸式动效与极端布局韧性升级
+# v2.8.1：音频休眠意图与全链路稳定性修复
 
 发布日期：2026-08-29
 
-本次版本继续强化 UI、UX 与动画表现，并对新增动效、SFX、BGM、无障碍和极端字号布局完成全链路复查。页面获得更连贯的指针、滚动和场景动势，同时保持触屏与减少动态效果环境下的性能和可用性。
+本次补丁对 UI、UX、动画、SFX 与 BGM 再次进行全链路压力审查，修复声音全部关闭后页面恢复仍会无意义唤醒 AudioContext 的生命周期问题。
 
 ## 更新内容
 
-- 新增有上限的 Canvas 指针粒子场与点击能量环，以单一动画循环呈现拖尾、爆发和扩散反馈。
-- 新增滚动动量驱动的标题倾斜、遥测带位移和场景边界光束呼吸，并强化卡片顶层、正文与底层的内部视差。
-- 在聚焦或悬停卡片时建立更清晰的视觉层级，同时按卡片宽度缩放 3D 动势，修复极窄卡片边缘内容被裁切的问题。
-- 修复 768 px 视口配合 300% 字号时声音控件引发的横向溢出，以及 390 px 视口配合 400% 字号时顶栏品牌越界。
-- 将标题色差回声改为对辅助技术隐藏的独立图层，消除标题被重复朗读的问题。
-- 修复减少动态效果偏好快速切换时滚动 RAF 可能遗留的调度竞态；粒子、能量环、卡片视差和场景光束均会同步清理或停用。
-- 为精细指针、触屏、高 DPR、页面隐藏和动态偏好切换补充性能边界，避免无效 Canvas 尺寸与后台动画消耗。
-- 重新验证 SFX/BGM 开关、快速反转、页面可见性、BFCache、音频图构建失败及恢复失败路径，确认生命周期与回滚行为稳定。
+- 仅在 SFX 或 BGM 仍处于开启意图时记录音频恢复请求，避免双关闭状态从页面隐藏或 BFCache 返回后重新唤醒音频上下文。
+- 为异步 resume 与页面隐藏交错的竞态增加相同意图门禁，阻止过期恢复请求绕过开关状态。
+- 保留重新开启声音时的按需恢复能力，不改变现有音色、BGM 淡出、增益与控件反馈。
+- 完成 22 组 100%–400% 字号与横竖屏布局复验，所有文本、卡片、交互目标和最强视差边界均保持完整。
+- 复验键盘焦点、强制配色、原生 ARIA、粒子/能量环上限、reduced-motion 快速切换与 RAF 清理，未发现 UI/UX 和动效回归。
+- 重新注入音频构图、滤波器和生命周期故障，确认 SFX/BGM 失败回滚与按需恢复正常。
 
-上一版本内容已移入 [v2.7.0 历史公告](docs/announcements/history/v2.7.0.md)，更早版本见 [v2.6.0](docs/announcements/history/v2.6.0.md)、[v2.5.0](docs/announcements/history/v2.5.0.md)、[v2.4.0](docs/announcements/history/v2.4.0.md)、[v2.3.0](docs/announcements/history/v2.3.0.md)、[v2.2.0](docs/announcements/history/v2.2.0.md)、[v2.1.0](docs/announcements/history/v2.1.0.md) 与 [v2.0.0](docs/announcements/history/v2.0.0.md) 历史公告。
+上一版本内容已移入 [v2.8.0 历史公告](docs/announcements/history/v2.8.0.md)，更早版本见 [v2.7.0](docs/announcements/history/v2.7.0.md)、[v2.6.0](docs/announcements/history/v2.6.0.md)、[v2.5.0](docs/announcements/history/v2.5.0.md)、[v2.4.0](docs/announcements/history/v2.4.0.md)、[v2.3.0](docs/announcements/history/v2.3.0.md)、[v2.2.0](docs/announcements/history/v2.2.0.md)、[v2.1.0](docs/announcements/history/v2.1.0.md) 与 [v2.0.0](docs/announcements/history/v2.0.0.md) 历史公告。

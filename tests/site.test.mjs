@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.8.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.7.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.6.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.5.0.md', import.meta.url)),
@@ -88,7 +89,7 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /intentRevision !== bgmIntentRevision/);
   assert.match(html, /if \(!bgmEnabled\) return;/);
   assert.match(html, /if \(document\.hidden && audioContext\.state === ['"]running['"]\)/);
-  assert.match(html, /resumeAfterVisibility = true;\s*await suspendAudioPlayback\(\);/);
+  assert.match(html, /resumeAfterVisibility = hasActiveAudioIntent\(\);\s*await suspendAudioPlayback\(\);/);
   assert.match(html, /function restoreAudioPlayback\(/);
   assert.match(html, /let suspendPromise;/);
   assert.match(html, /function suspendAudioPlayback\(/);
@@ -102,6 +103,13 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /function playTone\([\s\S]*?catch\s*{[\s\S]*?oscillator\?\.disconnect\(\)/);
   assert.match(html, /function startBgm\([\s\S]*?catch\s*{[\s\S]*?return false;/);
   assert.match(html, /if \(!startBgm\(\)\)\s*{\s*bgmEnabled = false;\s*syncAudioControls\(\);/);
+});
+
+test('keeps disabled audio suspended across lifecycle restores', () => {
+  assert.match(html, /function hasActiveAudioIntent\(\)\s*{\s*return sfxEnabled \|\| bgmEnabled;\s*}/);
+  assert.match(html, /function restoreAudioPlayback\(\)\s*{\s*if \(!hasActiveAudioIntent\(\)\) return;/);
+  assert.match(html, /resumeAfterVisibility = hasActiveAudioIntent\(\) && \(audioContext\.state === 'running' \|\| audioContext\.state === 'interrupted'\);/);
+  assert.match(html, /resumeAfterPageShow = hasActiveAudioIntent\(\) && \(audioContext\.state === 'running' \|\| audioContext\.state === 'interrupted'\);/);
 });
 
 test('keeps intro and pointer effects idempotent and input-aware', () => {
@@ -292,14 +300,16 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.8.0 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.8\.0"/);
-  assert.equal((html.match(/v2\.8\.0/g) ?? []).length, 2);
-  assert.match(html, /data-version="2\.8\.0"/);
-  assert.match(readme, /Current release: \*\*v2\.8\.0\*\*/);
-  assert.match(readme, /v2\.7\.0 archive/);
-  assert.match(announcement, /v2\.8\.0/);
-  assert.match(announcement, /history\/v2\.7\.0\.md/);
+test('publishes v2.8.1 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.8\.1"/);
+  assert.equal((html.match(/v2\.8\.1/g) ?? []).length, 2);
+  assert.match(html, /data-version="2\.8\.1"/);
+  assert.match(readme, /Current release: \*\*v2\.8\.1\*\*/);
+  assert.match(readme, /v2\.8\.0 archive/);
+  assert.match(announcement, /v2\.8\.1/);
+  assert.match(announcement, /history\/v2\.8\.0\.md/);
+  assert.match(historyV28, /v2\.8\.0/);
+  assert.match(historyV28, /当前公告/);
   assert.match(historyV27, /v2\.7\.0/);
   assert.match(historyV27, /当前公告/);
   assert.match(historyV26, /v2\.6\.0/);
