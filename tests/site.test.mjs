@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV281, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.8.1.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.8.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.7.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.6.0.md', import.meta.url)),
@@ -108,8 +109,18 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
 test('keeps disabled audio suspended across lifecycle restores', () => {
   assert.match(html, /function hasActiveAudioIntent\(\)\s*{\s*return sfxEnabled \|\| bgmEnabled;\s*}/);
   assert.match(html, /function restoreAudioPlayback\(\)\s*{\s*if \(!hasActiveAudioIntent\(\)\) return;/);
+  assert.match(html, /async function ensureAudio\(\)\s*{\s*if \(suspendPromise\) await suspendPromise;\s*if \(!AudioEngine\)/);
+  assert.match(html, /if \(suspendPromise\) await suspendPromise;\s*if \(!hasActiveAudioIntent\(\)\) return;/);
+  assert.match(html, /const context = await ensureAudio\(\);\s*if \(context && !hasActiveAudioIntent\(\)\)\s*{\s*await suspendAudioPlayback\(\);\s*return;\s*}/);
   assert.match(html, /resumeAfterVisibility = hasActiveAudioIntent\(\) && \(audioContext\.state === 'running' \|\| audioContext\.state === 'interrupted'\);/);
   assert.match(html, /resumeAfterPageShow = hasActiveAudioIntent\(\) && \(audioContext\.state === 'running' \|\| audioContext\.state === 'interrupted'\);/);
+});
+
+test('does not wake audio for disabled interaction sounds', () => {
+  assert.match(
+    html,
+    /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?element\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*if \(!sfxEnabled\) return;\s*ensureAudio\(\)\.then/,
+  );
 });
 
 test('keeps intro and pointer effects idempotent and input-aware', () => {
@@ -118,7 +129,7 @@ test('keeps intro and pointer effects idempotent and input-aware', () => {
     html.indexOf("window.addEventListener('keydown', finishIntro)") < html.indexOf('if (reduceMotion.matches)'),
   );
   assert.match(html, /event\.pointerType\s*===\s*['"]mouse['"]/);
-  assert.match(html, /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?element\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*ensureAudio\(\)\.then/);
+  assert.match(html, /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?element\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*if \(!sfxEnabled\) return;\s*ensureAudio\(\)\.then/);
   assert.doesNotMatch(
     html,
     /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?card\.addEventListener\('pointerdown'/,
@@ -300,14 +311,16 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.8.1 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.8\.1"/);
-  assert.equal((html.match(/v2\.8\.1/g) ?? []).length, 2);
-  assert.match(html, /data-version="2\.8\.1"/);
-  assert.match(readme, /Current release: \*\*v2\.8\.1\*\*/);
-  assert.match(readme, /v2\.8\.0 archive/);
-  assert.match(announcement, /v2\.8\.1/);
-  assert.match(announcement, /history\/v2\.8\.0\.md/);
+test('publishes v2.8.2 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.8\.2"/);
+  assert.equal((html.match(/v2\.8\.2/g) ?? []).length, 2);
+  assert.match(html, /data-version="2\.8\.2"/);
+  assert.match(readme, /Current release: \*\*v2\.8\.2\*\*/);
+  assert.match(readme, /v2\.8\.1 archive/);
+  assert.match(announcement, /v2\.8\.2/);
+  assert.match(announcement, /history\/v2\.8\.1\.md/);
+  assert.match(historyV281, /v2\.8\.1/);
+  assert.match(historyV281, /当前公告/);
   assert.match(historyV28, /v2\.8\.0/);
   assert.match(historyV28, /当前公告/);
   assert.match(historyV27, /v2\.7\.0/);

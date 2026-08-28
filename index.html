@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.8.1">
+<meta name="application-version" content="2.8.2">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -2056,7 +2056,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 </style>
 </noscript>
 </head>
-<body data-version="2.8.1">
+<body data-version="2.8.2">
 <a class="skip-link" href="#main">跳到主要内容</a>
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
 <canvas class="motion-field" aria-hidden="true"></canvas>
@@ -2102,7 +2102,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.8.1 · Link portal
+        v2.8.2 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效" data-magnetic data-ripple>
@@ -2253,7 +2253,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.1</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.2</p>
   </footer>
 </div>
 
@@ -2601,6 +2601,7 @@ async function resumeAudio() {
 }
 
 async function ensureAudio() {
+  if (suspendPromise) await suspendPromise;
   if (!AudioEngine) {
     disableAudioControls();
     return null;
@@ -2864,6 +2865,7 @@ document.querySelectorAll('[data-sfx]').forEach(element => {
     if (event.pointerType === 'mouse' && audioContext) playSfx('hover');
   });
   element.addEventListener('click', () => {
+    if (!sfxEnabled) return;
     ensureAudio().then(context => {
       if (context) playSfx('open');
     });
@@ -3047,9 +3049,14 @@ function hasActiveAudioIntent() {
 async function restoreAudioPlayback() {
   if (!hasActiveAudioIntent()) return;
   if (suspendPromise) await suspendPromise;
+  if (!hasActiveAudioIntent()) return;
   const sfxRevision = sfxIntentRevision;
   const bgmRevision = bgmIntentRevision;
   const context = await ensureAudio();
+  if (context && !hasActiveAudioIntent()) {
+    await suspendAudioPlayback();
+    return;
+  }
   if (!context) {
     if (document.hidden || soundToggle.disabled) return;
     if (sfxRevision === sfxIntentRevision) sfxEnabled = false;

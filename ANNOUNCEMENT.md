@@ -1,16 +1,18 @@
-# v2.8.1：音频休眠意图与全链路稳定性修复
+# v2.8.2：音频恢复竞态与全链路稳定性修复
 
 发布日期：2026-08-29
 
-本次补丁对 UI、UX、动画、SFX 与 BGM 再次进行全链路压力审查，修复声音全部关闭后页面恢复仍会无意义唤醒 AudioContext 的生命周期问题。
+本次补丁继续对 UI、UX、动画、SFX 与 BGM 进行全链路压力审查，修复页面恢复与声音开关快速反转交错时，过期异步任务仍可能唤醒 AudioContext 的竞态问题。
 
 ## 更新内容
 
-- 仅在 SFX 或 BGM 仍处于开启意图时记录音频恢复请求，避免双关闭状态从页面隐藏或 BFCache 返回后重新唤醒音频上下文。
-- 为异步 resume 与页面隐藏交错的竞态增加相同意图门禁，阻止过期恢复请求绕过开关状态。
-- 保留重新开启声音时的按需恢复能力，不改变现有音色、BGM 淡出、增益与控件反馈。
-- 完成 22 组 100%–400% 字号与横竖屏布局复验，所有文本、卡片、交互目标和最强视差边界均保持完整。
-- 复验键盘焦点、强制配色、原生 ARIA、粒子/能量环上限、reduced-motion 快速切换与 RAF 清理，未发现 UI/UX 和动效回归。
-- 重新注入音频构图、滤波器和生命周期故障，确认 SFX/BGM 失败回滚与按需恢复正常。
+- 串行化在途音频挂起与后续 `ensureAudio()`，避免重新开启声音时被较晚完成的 suspend 反向覆盖。
+- 在页面恢复等待 suspend 后再次校验 SFX/BGM 意图，双关闭时不再启动过期 resume。
+- 在异步 resume 完成后再次校验声音意图；若用户已双关闭，立即恢复 suspended 状态。
+- 验证纠正性 suspend 期间重新开启 SFX 的反向竞态，确认最终按最新意图恢复 running。
+- SFX 关闭时，CTA 与卡片点击不再为无声反馈创建或唤醒 AudioContext。
+- 完成 24 组 100%–400% 字号与横竖屏布局复验，所有文本、卡片、交互目标和最强视差边界均保持完整。
+- 复验键盘焦点、强制配色、原生 ARIA、鼠标视差、Canvas、涟漪销毁与 reduced-motion 清理，未发现 UI/UX 和动效回归。
+- 通过真实 Web Audio 与可控延迟音频上下文复验 SFX/BGM 构图、开关反馈、页面可见性和 BFCache 生命周期。
 
-上一版本内容已移入 [v2.8.0 历史公告](docs/announcements/history/v2.8.0.md)，更早版本见 [v2.7.0](docs/announcements/history/v2.7.0.md)、[v2.6.0](docs/announcements/history/v2.6.0.md)、[v2.5.0](docs/announcements/history/v2.5.0.md)、[v2.4.0](docs/announcements/history/v2.4.0.md)、[v2.3.0](docs/announcements/history/v2.3.0.md)、[v2.2.0](docs/announcements/history/v2.2.0.md)、[v2.1.0](docs/announcements/history/v2.1.0.md) 与 [v2.0.0](docs/announcements/history/v2.0.0.md) 历史公告。
+上一版本内容已移入 [v2.8.1 历史公告](docs/announcements/history/v2.8.1.md)，更早版本见 [v2.8.0](docs/announcements/history/v2.8.0.md)、[v2.7.0](docs/announcements/history/v2.7.0.md)、[v2.6.0](docs/announcements/history/v2.6.0.md)、[v2.5.0](docs/announcements/history/v2.5.0.md)、[v2.4.0](docs/announcements/history/v2.4.0.md)、[v2.3.0](docs/announcements/history/v2.3.0.md)、[v2.2.0](docs/announcements/history/v2.2.0.md)、[v2.1.0](docs/announcements/history/v2.1.0.md) 与 [v2.0.0](docs/announcements/history/v2.0.0.md) 历史公告。
