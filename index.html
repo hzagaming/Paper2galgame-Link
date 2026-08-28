@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.7.0">
+<meta name="application-version" content="2.8.0">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -28,6 +28,9 @@
   --pointer-angle: 0deg;
   --pointer-tail: 0px;
   --scroll-progress: 0;
+  --scroll-kick-y: 0px;
+  --scroll-skew: 0deg;
+  --scene-flare: 0;
   --hero-shift: 0px;
   --art-rx: 0deg;
   --art-ry: 0deg;
@@ -38,6 +41,7 @@
 }
 
 html {
+  overflow-x: clip;
   scroll-behavior: smooth;
   scroll-padding-top: 7rem;
 }
@@ -109,6 +113,18 @@ a {
   transform: scaleX(var(--scroll-progress));
   transform-origin: left;
   transition: transform 80ms linear;
+}
+
+.motion-field {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: none;
+  width: 100%;
+  height: 100%;
+  opacity: 0.72;
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 
 .pointer-lens {
@@ -1074,6 +1090,22 @@ h1 .title-accent {
   pointer-events: none;
 }
 
+.links-section::after {
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-soft) 28%, var(--cyan) 62%, transparent);
+  box-shadow: 0 0 2rem rgba(158, 232, 239, 0.42);
+  content: "";
+  opacity: var(--scene-flare);
+  pointer-events: none;
+  transform: scaleX(var(--scene-flare));
+  transform-origin: center;
+  transition: opacity 160ms linear, transform 160ms ease-out;
+}
+
 .section-heading {
   display: flex;
   flex-wrap: wrap;
@@ -1094,20 +1126,41 @@ h1 .title-accent {
 }
 
 h2 {
+  position: relative;
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
   font-size: clamp(2.8rem, 6vw, 6rem);
   font-weight: 400;
   line-height: 0.95;
   letter-spacing: -0.055em;
+  transform: skewX(var(--scroll-skew));
+  transform-origin: left bottom;
+  transition: transform 160ms ease-out;
 }
 
-h2 span {
+.section-title-main {
+  position: relative;
+  z-index: 1;
   display: block;
 }
 
-.is-ready .section-heading.is-visible h2 span {
+.section-title-echo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  color: var(--cyan);
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.is-ready .section-heading.is-visible .section-title-main {
   animation: sectionTitleSlice 1s var(--ease) 120ms both;
+}
+
+.is-ready .section-heading.is-visible .section-title-echo {
+  animation: sectionTitleEcho 900ms steps(2, end) 220ms both;
 }
 
 .link-count {
@@ -1125,6 +1178,10 @@ h2 span {
   border-block: 1px solid rgba(255, 255, 255, 0.08);
   color: rgba(244, 240, 232, 0.34);
   mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  translate: 0 var(--scroll-kick-y);
+  transform: skewX(var(--scroll-skew));
+  transform-origin: center;
+  transition: translate 160ms ease-out, transform 160ms ease-out;
 }
 
 .motion-marquee > div {
@@ -1157,6 +1214,15 @@ h2 span {
   --card-rx: 0deg;
   --card-ry: 0deg;
   --card-lift: 0px;
+  --card-top-x: 0px;
+  --card-top-y: 0px;
+  --card-copy-x: 0px;
+  --card-copy-y: 0px;
+  --card-bottom-x: 0px;
+  --card-bottom-y: 0px;
+  --card-top-z: 1.2rem;
+  --card-copy-z: 1.8rem;
+  --card-bottom-z: 1.2rem;
   position: relative;
   display: grid;
   flex: 1 1 calc(50% - 0.5rem);
@@ -1211,12 +1277,19 @@ h2 span {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), transparent 42%);
 }
 
+.card-top,
+.card-copy,
+.card-bottom {
+  min-width: 0;
+}
+
 .card-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  transform: translateZ(1.2rem);
+  transform: translate3d(var(--card-top-x), var(--card-top-y), var(--card-top-z));
+  transition: transform 220ms ease-out;
 }
 
 .card-index {
@@ -1254,7 +1327,8 @@ h2 span {
 .card-copy {
   align-self: end;
   margin: 4rem 0 2.6rem;
-  transform: translateZ(1.8rem);
+  transform: translate3d(var(--card-copy-x), var(--card-copy-y), var(--card-copy-z));
+  transition: transform 180ms ease-out;
 }
 
 .card-copy h3 {
@@ -1292,7 +1366,8 @@ h2 span {
   gap: 1rem;
   padding-top: 1.2rem;
   border-top: 1px solid var(--line);
-  transform: translateZ(1.2rem);
+  transform: translate3d(var(--card-bottom-x), var(--card-bottom-y), var(--card-bottom-z));
+  transition: transform 240ms ease-out;
 }
 
 .card-bottom::after {
@@ -1421,6 +1496,11 @@ h2 span {
   translate: 0;
 }
 
+.topbar[data-reveal],
+.hero-cta[data-reveal] {
+  scale: 1;
+}
+
 .link-card[data-reveal] {
   transition: opacity 900ms ease, filter 1s ease, scale 1s var(--ease), translate 1s var(--ease), transform 180ms ease-out, border-color 320ms ease, box-shadow 420ms var(--ease);
   transition-delay: var(--delay, 0ms), var(--delay, 0ms), var(--delay, 0ms), var(--delay, 0ms), 0ms, 0ms, 0ms;
@@ -1479,7 +1559,8 @@ main:focus {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .pointer-lens {
+  .pointer-lens,
+  .motion-field {
     display: block;
   }
 
@@ -1521,11 +1602,21 @@ main:focus {
     opacity: 1;
   }
 
+  .link-grid:has(.link-card:is(:hover, :focus-visible)) .link-card:not(:hover):not(:focus-visible) {
+    --card-lift: 3px;
+    filter: saturate(0.58) brightness(0.72);
+    scale: 0.985;
+  }
+
   .link-card:hover .card-arrow {
     background: var(--ink);
     color: #0c0d10;
     transform: rotate(45deg);
   }
+}
+
+body.is-destination-scene .links-section::after {
+  animation: sceneBeamPulse 2.4s ease-in-out infinite;
 }
 
 @keyframes introWipe {
@@ -1566,6 +1657,41 @@ main:focus {
     opacity: 1;
     clip-path: inset(0 0 0 0);
     translate: 0 0;
+  }
+}
+
+@keyframes sectionTitleEcho {
+  0% {
+    opacity: 0;
+    clip-path: inset(10% 0 68% 0);
+    translate: -0.08em 0;
+  }
+  35% {
+    opacity: 0.46;
+    clip-path: inset(42% 0 34% 0);
+    translate: 0.06em 0;
+  }
+  68% {
+    color: var(--accent-soft);
+    opacity: 0.3;
+    clip-path: inset(72% 0 8% 0);
+    translate: -0.03em 0;
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(88% 0 0 0);
+    translate: 0.12em 0;
+  }
+}
+
+@keyframes sceneBeamPulse {
+  0%, 100% {
+    filter: brightness(0.92);
+    box-shadow: 0 0 1.5rem rgba(158, 232, 239, 0.3);
+  }
+  50% {
+    filter: brightness(1.55);
+    box-shadow: 0 0 3rem rgba(158, 232, 239, 0.68);
   }
 }
 
@@ -1660,6 +1786,24 @@ main:focus {
 }
 
 @media (max-width: 900px) {
+  .sound-label,
+  .audio-meter {
+    display: none;
+  }
+
+  .sound-toggle {
+    width: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sound-toggle svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+  }
+
   .hero::before,
   .scroll-cue {
     display: none;
@@ -1727,21 +1871,6 @@ main:focus {
     gap: 0.45rem;
   }
 
-  .sound-toggle {
-    width: 44px;
-    min-width: 44px;
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sound-toggle span {
-    display: none;
-  }
-
-  .sound-toggle .audio-meter {
-    display: none;
-  }
-
   .hero {
     min-height: auto;
     gap: 3.5rem;
@@ -1769,6 +1898,9 @@ main:focus {
   }
 
   .link-card {
+    --card-top-z: 0px;
+    --card-copy-z: 0px;
+    --card-bottom-z: 0px;
     min-width: 0;
     flex-basis: 100%;
     min-height: 17rem;
@@ -1799,13 +1931,6 @@ main:focus {
     width: 44px;
   }
 
-  .brand-copy strong {
-    font-size: 0.66rem;
-    letter-spacing: 0.12em;
-  }
-}
-
-@media (max-width: 360px) {
   .brand-copy {
     display: none;
   }
@@ -1872,7 +1997,7 @@ main:focus {
     transform: none !important;
   }
 
-  h2 span,
+  .section-title-main,
   .link-card .card-top,
   .link-card .card-copy,
   .link-card .card-bottom {
@@ -1899,6 +2024,19 @@ main:focus {
     display: none !important;
   }
 
+  .motion-field {
+    display: none !important;
+  }
+
+  .section-title-echo {
+    display: none !important;
+    animation: none !important;
+  }
+
+  .links-section::after {
+    animation: none !important;
+  }
+
   *,
   *::before,
   *::after {
@@ -1918,9 +2056,10 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 </style>
 </noscript>
 </head>
-<body data-version="2.7.0">
+<body data-version="2.8.0">
 <a class="skip-link" href="#main">跳到主要内容</a>
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
+<canvas class="motion-field" aria-hidden="true"></canvas>
 <div class="pointer-lens" aria-hidden="true"><span></span></div>
 <div class="scene-rail" aria-hidden="true"><span>01</span><i></i><span>02</span></div>
 
@@ -1963,7 +2102,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.7.0 · Link portal
+        v2.8.0 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效" data-magnetic data-ripple>
@@ -1971,14 +2110,14 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
             <path d="M3 7v4h3l4 3V4L6 7H3Z" fill="currentColor"/>
             <path class="sound-wave" d="M12.5 6.2a4 4 0 0 1 0 5.6M14.5 4.5a6.4 6.4 0 0 1 0 9" fill="none" stroke="currentColor" stroke-linecap="round"/>
           </svg>
-          <span>SFX ON</span>
+          <span class="sound-label">SFX ON</span>
         </button>
         <button id="bgmToggle" class="sound-toggle" type="button" aria-pressed="false" aria-label="背景音乐" data-magnetic data-ripple>
           <svg viewBox="0 0 18 18" aria-hidden="true">
             <path d="M7 4v8.2a2.4 2.4 0 1 1-1-1.9V6l8-2v6.2a2.4 2.4 0 1 1-1-1.9V2.5L7 4Z" fill="currentColor"/>
             <path class="sound-wave" d="M14.8 12.8c.8.6 1.2 1.3 1.2 2.1" fill="none" stroke="currentColor" stroke-linecap="round"/>
           </svg>
-          <span>BGM OFF</span>
+          <span class="sound-label">BGM OFF</span>
           <span class="audio-meter" aria-hidden="true"><i></i><i></i><i></i></span>
         </button>
       </div>
@@ -2028,7 +2167,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
       <header class="section-heading" data-reveal>
         <div>
           <p class="section-kicker">Selected destinations</p>
-          <h2 id="links-title"><span>Choose your next scene.</span></h2>
+          <h2 id="links-title"><span class="section-title-main">Choose your next scene.</span><span class="section-title-echo" aria-hidden="true">Choose your next scene.</span></h2>
         </div>
         <span class="link-count">04 links · External</span>
       </header>
@@ -2114,7 +2253,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.7.0</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.0</p>
   </footer>
 </div>
 
@@ -2124,11 +2263,14 @@ const intro = document.querySelector('.intro');
 const introCounter = document.getElementById('introCounter');
 const heroArt = document.querySelector('.hero-art');
 const destinations = document.getElementById('destinations');
+const motionField = document.querySelector('.motion-field');
+const motionContext = motionField.getContext('2d');
 const soundToggle = document.getElementById('soundToggle');
 const bgmToggle = document.getElementById('bgmToggle');
-const soundLabel = soundToggle.querySelector('span');
-const bgmLabel = bgmToggle.querySelector('span');
+const soundLabel = soundToggle.querySelector('.sound-label');
+const bgmLabel = bgmToggle.querySelector('.sound-label');
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
+const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
 const AudioEngine = window.AudioContext || window.webkitAudioContext;
 let introTimer;
 let introHideTimer;
@@ -2140,6 +2282,12 @@ let pointerTargetY = innerHeight / 2;
 let pointerCurrentX = pointerTargetX;
 let pointerCurrentY = pointerTargetY;
 let scrollFrame;
+let scrollVelocity = 0;
+let lastScrollY = scrollY;
+let motionFieldFrame;
+let motionFieldScale = 1;
+const motionParticles = [];
+const motionRings = [];
 let audioContext;
 let masterGain;
 let sfxGain;
@@ -2229,13 +2377,134 @@ function initViewportReveals() {
   items.forEach(item => observer.observe(item));
 }
 
+function resizeMotionField() {
+  if (!motionContext || !finePointer.matches || reduceMotion.matches) {
+    motionField.width = 1;
+    motionField.height = 1;
+    return;
+  }
+  motionFieldScale = Math.min(devicePixelRatio || 1, 2);
+  motionField.width = Math.round(innerWidth * motionFieldScale);
+  motionField.height = Math.round(innerHeight * motionFieldScale);
+  motionContext.setTransform(motionFieldScale, 0, 0, motionFieldScale, 0, 0);
+}
+
+function resetMotionField() {
+  cancelAnimationFrame(motionFieldFrame);
+  motionFieldFrame = null;
+  motionParticles.length = 0;
+  motionRings.length = 0;
+  motionContext?.clearRect(0, 0, innerWidth, innerHeight);
+}
+
+function renderMotionField() {
+  motionFieldFrame = null;
+  if (!motionContext || reduceMotion.matches || document.hidden) {
+    resetMotionField();
+    return;
+  }
+  motionContext.clearRect(0, 0, innerWidth, innerHeight);
+  motionContext.save();
+  motionContext.globalCompositeOperation = 'lighter';
+  for (let index = motionParticles.length - 1; index >= 0; index -= 1) {
+    const particle = motionParticles[index];
+    particle.x += particle.vx;
+    particle.y += particle.vy;
+    particle.vx *= 0.96;
+    particle.vy *= 0.96;
+    particle.life -= particle.decay;
+    if (particle.life <= 0) {
+      motionParticles.splice(index, 1);
+      continue;
+    }
+    motionContext.beginPath();
+    motionContext.moveTo(particle.x, particle.y);
+    motionContext.lineTo(particle.x - particle.vx * 5, particle.y - particle.vy * 5);
+    motionContext.lineWidth = particle.radius;
+    motionContext.strokeStyle = `rgba(${particle.color}, ${particle.life * 0.48})`;
+    motionContext.stroke();
+    motionContext.beginPath();
+    motionContext.arc(particle.x, particle.y, particle.radius * particle.life, 0, Math.PI * 2);
+    motionContext.fillStyle = `rgba(${particle.color}, ${particle.life * 0.72})`;
+    motionContext.fill();
+  }
+  for (let index = motionRings.length - 1; index >= 0; index -= 1) {
+    const ring = motionRings[index];
+    ring.radius += ring.velocity;
+    ring.velocity *= 0.96;
+    ring.life -= ring.decay;
+    if (ring.life <= 0) {
+      motionRings.splice(index, 1);
+      continue;
+    }
+    motionContext.beginPath();
+    motionContext.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+    motionContext.lineWidth = 1 + ring.life * 2.5;
+    motionContext.strokeStyle = `rgba(${ring.color}, ${ring.life * 0.66})`;
+    motionContext.stroke();
+  }
+  motionContext.restore();
+  if (motionParticles.length || motionRings.length) motionFieldFrame = requestAnimationFrame(renderMotionField);
+}
+
+function emitMotionParticles(x, y, velocityX = 0, velocityY = 0, burst = false) {
+  if (!motionContext || !finePointer.matches || reduceMotion.matches) return;
+  if (burst) {
+    if (motionRings.length >= 4) motionRings.shift();
+    motionRings.push({ x, y, radius: 8, velocity: 5.8, life: 1, decay: 0.035, color: '255, 179, 159' });
+  }
+  const count = burst ? 10 : 1;
+  for (let index = 0; index < count; index += 1) {
+    if (motionParticles.length >= 48) motionParticles.shift();
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 0.8 + Math.random() * 2.4;
+    const driftX = Math.max(-2.4, Math.min(-velocityX * 0.045, 2.4));
+    const driftY = Math.max(-2.4, Math.min(-velocityY * 0.045, 2.4));
+    motionParticles.push({
+      x,
+      y,
+      vx: burst ? Math.cos(angle) * speed : driftX + (Math.random() - 0.5) * 0.7,
+      vy: burst ? Math.sin(angle) * speed : driftY + (Math.random() - 0.5) * 0.7,
+      life: 1,
+      decay: burst ? 0.025 + Math.random() * 0.018 : 0.045 + Math.random() * 0.025,
+      radius: 0.8 + Math.random() * (burst ? 2.2 : 1.1),
+      color: index % 3 ? '158, 232, 239' : '255, 118, 87',
+    });
+  }
+  if (!motionFieldFrame) motionFieldFrame = requestAnimationFrame(renderMotionField);
+}
+
+function resetScrollMomentum() {
+  cancelAnimationFrame(scrollFrame);
+  scrollFrame = null;
+  scrollVelocity = 0;
+  lastScrollY = scrollY;
+  root.style.setProperty('--scroll-kick-y', '0px');
+  root.style.setProperty('--scroll-skew', '0deg');
+}
+
 function updateScrollMotion() {
   scrollFrame = null;
+  const scrollDelta = Math.max(-80, Math.min(scrollY - lastScrollY, 80));
+  lastScrollY = scrollY;
+  if (reduceMotion.matches) {
+    scrollVelocity = 0;
+  } else {
+    scrollVelocity += (scrollDelta - scrollVelocity) * 0.38;
+    scrollVelocity *= 0.82;
+    if (Math.abs(scrollVelocity) < 0.05) scrollVelocity = 0;
+  }
   const scrollLimit = Math.max(document.documentElement.scrollHeight - innerHeight, 1);
+  const sceneEdge = destinations.getBoundingClientRect().top;
+  const sceneFlare = reduceMotion.matches ? 0 : Math.max(0, 1 - Math.abs(sceneEdge - innerHeight * 0.55) / Math.max(innerHeight * 0.7, 1));
   root.style.setProperty('--scroll-progress', Math.min(Math.max(scrollY / scrollLimit, 0), 1).toFixed(4));
+  root.style.setProperty('--scroll-kick-y', `${Math.max(-12, Math.min(scrollVelocity * 0.48, 12))}px`);
+  root.style.setProperty('--scroll-skew', `${Math.max(-1.15, Math.min(scrollVelocity * -0.045, 1.15))}deg`);
+  root.style.setProperty('--scene-flare', sceneFlare.toFixed(3));
   root.style.setProperty('--hero-shift', reduceMotion.matches ? '0px' : `${Math.min(scrollY * 0.11, 64)}px`);
   document.body.classList.toggle('is-scrolled', scrollY > 24);
   document.body.classList.toggle('is-destination-scene', scrollY + innerHeight * 0.45 >= destinations.offsetTop);
+  if (scrollVelocity) scrollFrame = requestAnimationFrame(updateScrollMotion);
 }
 
 function requestScrollMotion() {
@@ -2243,9 +2512,18 @@ function requestScrollMotion() {
 }
 
 initViewportReveals();
+resizeMotionField();
 updateScrollMotion();
 window.addEventListener('scroll', requestScrollMotion, { passive: true });
 window.addEventListener('resize', requestScrollMotion, { passive: true });
+window.addEventListener('resize', resizeMotionField, { passive: true });
+finePointer.addEventListener?.('change', () => {
+  resetMotionField();
+  resizeMotionField();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) resetMotionField();
+});
 
 function disableAudioControls() {
   sfxEnabled = false;
@@ -2597,6 +2875,12 @@ function resetCardTilt(card) {
   card.style.setProperty('--card-y', '50%');
   card.style.setProperty('--card-rx', '0deg');
   card.style.setProperty('--card-ry', '0deg');
+  card.style.setProperty('--card-top-x', '0px');
+  card.style.setProperty('--card-top-y', '0px');
+  card.style.setProperty('--card-copy-x', '0px');
+  card.style.setProperty('--card-copy-y', '0px');
+  card.style.setProperty('--card-bottom-x', '0px');
+  card.style.setProperty('--card-bottom-y', '0px');
 }
 
 document.querySelectorAll('.link-card').forEach(card => {
@@ -2613,12 +2897,19 @@ document.querySelectorAll('.link-card').forEach(card => {
       cardFrame = null;
       if (reduceMotion.matches) return;
       const bounds = card.getBoundingClientRect();
+      const cardMotionScale = Math.min(Math.max((bounds.width - 300) / 240, 0), 1);
       const x = (clientX - bounds.left) / bounds.width;
       const y = (clientY - bounds.top) / bounds.height;
       card.style.setProperty('--card-x', `${x * 100}%`);
       card.style.setProperty('--card-y', `${y * 100}%`);
-      card.style.setProperty('--card-rx', `${(0.5 - y) * 7}deg`);
-      card.style.setProperty('--card-ry', `${(x - 0.5) * 9}deg`);
+      card.style.setProperty('--card-rx', `${(0.5 - y) * 7 * cardMotionScale}deg`);
+      card.style.setProperty('--card-ry', `${(x - 0.5) * 9 * cardMotionScale}deg`);
+      card.style.setProperty('--card-top-x', `${(0.5 - x) * 5 * cardMotionScale}px`);
+      card.style.setProperty('--card-top-y', `${(0.5 - y) * 3 * cardMotionScale}px`);
+      card.style.setProperty('--card-copy-x', `${(x - 0.5) * 11 * cardMotionScale}px`);
+      card.style.setProperty('--card-copy-y', `${(y - 0.5) * 7 * cardMotionScale}px`);
+      card.style.setProperty('--card-bottom-x', `${(x - 0.5) * 4 * cardMotionScale}px`);
+      card.style.setProperty('--card-bottom-y', `${(0.5 - y) * 2 * cardMotionScale}px`);
     });
   }, { passive: true });
   card.addEventListener('pointerleave', resetCardMotion);
@@ -2698,9 +2989,12 @@ function resetPointerMotion() {
 
 window.addEventListener('pointermove', event => {
   if (reduceMotion.matches || event.pointerType !== 'mouse') return;
-  if (!document.body.classList.contains('has-pointer')) {
+  const hasPointer = document.body.classList.contains('has-pointer');
+  if (!hasPointer) {
     pointerCurrentX = event.clientX;
     pointerCurrentY = event.clientY;
+  } else {
+    emitMotionParticles(event.clientX, event.clientY, event.clientX - pointerTargetX, event.clientY - pointerTargetY);
   }
   pointerTargetX = event.clientX;
   pointerTargetY = event.clientY;
@@ -2718,7 +3012,9 @@ document.querySelectorAll('a, button').forEach(element => {
 });
 
 window.addEventListener('pointerdown', event => {
-  if (event.pointerType === 'mouse' && !reduceMotion.matches) document.body.classList.add('is-pointer-down');
+  if (event.pointerType !== 'mouse' || reduceMotion.matches) return;
+  document.body.classList.add('is-pointer-down');
+  emitMotionParticles(event.clientX, event.clientY, 0, 0, true);
 }, { passive: true });
 window.addEventListener('pointerup', () => document.body.classList.remove('is-pointer-down'), { passive: true });
 window.addEventListener('pointercancel', resetPointerMotion, { passive: true });
@@ -2728,7 +3024,14 @@ document.documentElement.addEventListener('pointerleave', event => {
 }, { passive: true });
 
 reduceMotion.addEventListener?.('change', event => {
-  if (!event.matches) return;
+  resetScrollMomentum();
+  if (!event.matches) {
+    resizeMotionField();
+    updateScrollMotion();
+    return;
+  }
+  resetMotionField();
+  resizeMotionField();
   resetPointerMotion();
   resetArtTilt();
   document.querySelectorAll('.link-card').forEach(resetCardTilt);
