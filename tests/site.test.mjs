@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV281, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV282, historyV281, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.8.2.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.8.1.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.8.0.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.7.0.md', import.meta.url)),
@@ -72,7 +73,7 @@ test('generates SFX and opt-in ambient BGM without audio assets', () => {
 });
 
 test('manages Web Audio lifecycle and unavailable browsers', () => {
-  assert.match(html, /await audioContext\.resume\(\)/);
+  assert.match(html, /await context\.resume\(\)/);
   assert.match(html, /visibilitychange/);
   assert.match(html, /pagehide/);
   assert.match(html, /audioContext\.close\(\)/);
@@ -89,7 +90,7 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /intentRevision !== sfxIntentRevision/);
   assert.match(html, /intentRevision !== bgmIntentRevision/);
   assert.match(html, /if \(!bgmEnabled\) return;/);
-  assert.match(html, /if \(document\.hidden && audioContext\.state === ['"]running['"]\)/);
+  assert.match(html, /if \(document\.hidden && context\.state === ['"]running['"]\)/);
   assert.match(html, /resumeAfterVisibility = hasActiveAudioIntent\(\);\s*await suspendAudioPlayback\(\);/);
   assert.match(html, /function restoreAudioPlayback\(/);
   assert.match(html, /let suspendPromise;/);
@@ -106,14 +107,30 @@ test('manages Web Audio lifecycle and unavailable browsers', () => {
   assert.match(html, /if \(!startBgm\(\)\)\s*{\s*bgmEnabled = false;\s*syncAudioControls\(\);/);
 });
 
+test('isolates pending resumes when a closed audio context is replaced', () => {
+  assert.match(html, /let resumeContext;/);
+  assert.match(html, /async function resumeAudio\(context\)/);
+  assert.match(html, /const context = audioContext;\s*if \(context\.state !== ['"]running['"]\)/);
+  assert.match(html, /if \(!resumePromise \|\| resumeContext !== context\)/);
+  assert.match(html, /resumeContext = context;/);
+  assert.match(html, /const tracked = resumeAudio\(context\)\.finally\(\(\) =>\s*{\s*if \(resumePromise === tracked\)/);
+  assert.match(html, /if \(resumeContext === context\) resumeContext = null;/);
+});
+
 test('keeps disabled audio suspended across lifecycle restores', () => {
   assert.match(html, /function hasActiveAudioIntent\(\)\s*{\s*return sfxEnabled \|\| bgmEnabled;\s*}/);
   assert.match(html, /function restoreAudioPlayback\(\)\s*{\s*if \(!hasActiveAudioIntent\(\)\) return;/);
   assert.match(html, /async function ensureAudio\(\)\s*{\s*if \(suspendPromise\) await suspendPromise;\s*if \(!AudioEngine\)/);
   assert.match(html, /if \(suspendPromise\) await suspendPromise;\s*if \(!hasActiveAudioIntent\(\)\) return;/);
   assert.match(html, /const context = await ensureAudio\(\);\s*if \(context && !hasActiveAudioIntent\(\)\)\s*{\s*await suspendAudioPlayback\(\);\s*return;\s*}/);
-  assert.match(html, /resumeAfterVisibility = hasActiveAudioIntent\(\) && \(audioContext\.state === 'running' \|\| audioContext\.state === 'interrupted'\);/);
-  assert.match(html, /resumeAfterPageShow = hasActiveAudioIntent\(\) && \(audioContext\.state === 'running' \|\| audioContext\.state === 'interrupted'\);/);
+  assert.match(html, /resumeAfterVisibility = shouldRestoreAudio\(audioContext\);/);
+  assert.match(html, /resumeAfterPageShow = shouldRestoreAudio\(audioContext\);/);
+});
+
+test('restores active BGM after the browser auto-suspends audio first', () => {
+  assert.match(html, /function shouldRestoreAudio\(context\)/);
+  assert.match(html, /return hasActiveAudioIntent\(\) && \([\s\S]*?context\.state === 'running'[\s\S]*?context\.state === 'interrupted'[\s\S]*?bgmEnabled && Boolean\(bgmVoice\)/);
+  assert.equal((html.match(/shouldRestoreAudio\(audioContext\)/g) ?? []).length, 2);
 });
 
 test('does not wake audio for disabled interaction sounds', () => {
@@ -132,7 +149,7 @@ test('keeps intro and pointer effects idempotent and input-aware', () => {
   assert.match(html, /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?element\.addEventListener\('click',\s*\(\)\s*=>\s*{\s*if \(!sfxEnabled\) return;\s*ensureAudio\(\)\.then/);
   assert.doesNotMatch(
     html,
-    /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?card\.addEventListener\('pointerdown'/,
+    /document\.querySelectorAll\('\[data-sfx\]'\)[\s\S]*?element\.addEventListener\('pointerdown'/,
   );
   assert.match(html, /requestAnimationFrame\(/);
   assert.match(html, /\.backdrop::after\s*{[\s\S]*?transform:\s*translate3d\(/);
@@ -154,7 +171,7 @@ test('orchestrates viewport motion, spatial feedback, and live audio visuals', (
   assert.match(html, /--card-rx/);
   assert.match(html, /perspective\(\d+px\) rotateX\(var\(--card-rx\)\) rotateY\(var\(--card-ry\)\)/);
   assert.match(html, /function resetCardTilt\(/);
-  assert.match(html, /cancelAnimationFrame\(cardFrame\);\s*cardFrame = null;\s*resetCardTilt\(card\);/);
+  assert.match(html, /cancelAnimationFrame\(cardFrame\);\s*cardFrame = null;\s*card\.classList\.remove\('is-touch-active'\);\s*resetCardTilt\(card\);/);
   assert.match(html, /cancelAnimationFrame\(magneticFrame\);\s*magneticFrame = null;\s*resetMagnetic\(element\);/);
   assert.match(html, /function resetArtTilt\(\)\s*{\s*cancelAnimationFrame\(artFrame\);\s*artFrame = null;/);
   assert.match(html, /function createRipple\(/);
@@ -205,10 +222,11 @@ test('adds a bounded motion field and momentum-linked depth', () => {
   assert.match(html, /class="motion-field" aria-hidden="true"/);
   assert.match(html, /\.motion-field\s*{[\s\S]*?pointer-events:\s*none/);
   assert.match(html, /const motionContext = motionField\.getContext\('2d'\)/);
-  assert.match(html, /const finePointer = matchMedia\('\(hover: hover\) and \(pointer: fine\)'\)/);
-  assert.match(html, /if \(!motionContext \|\| !finePointer\.matches \|\| reduceMotion\.matches\)/);
-  assert.match(html, /Math\.min\(devicePixelRatio \|\| 1, 2\)/);
-  assert.match(html, /if \(motionParticles\.length >= 48\) motionParticles\.shift\(\)/);
+  assert.match(html, /const finePointer = matchMedia\('\(any-hover: hover\) and \(any-pointer: fine\)'\)/);
+  assert.match(html, /const hasMotionPointer = finePointer\.matches \|\| coarsePointer\.matches;/);
+  assert.match(html, /if \(!motionContext \|\| !hasMotionPointer \|\| reduceMotion\.matches\)/);
+  assert.match(html, /Math\.min\(devicePixelRatio \|\| 1, coarsePointer\.matches \? 1\.5 : 2\)/);
+  assert.match(html, /if \(motionParticles\.length >= particleLimit\) motionParticles\.shift\(\)/);
   assert.match(html, /function renderMotionField\(\)/);
   assert.match(html, /motionFieldFrame = requestAnimationFrame\(renderMotionField\)/);
   assert.match(html, /function resetMotionField\(\)/);
@@ -229,6 +247,86 @@ test('adds a bounded motion field and momentum-linked depth', () => {
   assert.match(html, /@media\s*\(prefers-reduced-motion:\s*reduce\)[\s\S]*?\.motion-field\s*{[\s\S]*?display:\s*none\s*!important/);
 });
 
+test('gives coarse pointers a bounded tactile motion system', () => {
+  assert.match(html, /const coarsePointer = matchMedia\('\(any-pointer: coarse\)'\);/);
+  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\.motion-field\s*{[\s\S]*?display:\s*block/);
+  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\.sound-toggle\s*{[\s\S]*?width:\s*44px;[\s\S]*?min-width:\s*44px/);
+  assert.match(html, /finePointer\.matches \|\| coarsePointer\.matches/);
+  assert.match(html, /coarsePointer\.matches \? 1\.5 : 2/);
+  assert.match(html, /const particleLimit = coarsePointer\.matches \? 24 : 48;/);
+  assert.match(html, /const ringLimit = coarsePointer\.matches \? 2 : 4;/);
+  assert.match(html, /const burstCount = coarsePointer\.matches \? 6 : 10;/);
+  assert.match(html, /event\.pointerType === 'touch'[\s\S]*?classList\.add\('is-touching'\)/);
+  assert.match(html, /card\.classList\.add\('is-touch-active'\)/);
+  assert.match(html, /function resetTouchMotion\(\{ preserveSettling = false \} = \{\}\)/);
+  assert.match(html, /coarsePointer\.addEventListener\?\.\('change'/);
+  assert.match(html, /function syncMotionPreference\(event\)[\s\S]*?resetTouchMotion\(\)/);
+});
+
+test('stabilizes mobile browser chrome and touch feedback', () => {
+  assert.match(html, /body\s*{[\s\S]*?min-height:\s*100svh/);
+  assert.match(html, /\.site-shell\s*{[\s\S]*?min-height:\s*100svh/);
+  assert.match(html, /@supports\s*\(height:\s*100dvh\)[\s\S]*?min-height:\s*100dvh/);
+  assert.match(html, /\.link-card\.is-touch-active\s*{/);
+  assert.match(html, /body\.is-touching \.motion-field/);
+  assert.match(html, /\.link-card\.is-touch-active::after/);
+});
+
+test('synchronizes live reduced-motion changes across mobile engines', () => {
+  assert.match(html, /function syncMotionPreference\(event\)/);
+  assert.match(html, /let motionPreferenceChanges;/);
+  assert.match(html, /function observeMotionPreferenceChanges\(\)/);
+  assert.match(html, /motionPreferenceChanges = matchMedia\('\(prefers-reduced-motion: reduce\)'\);/);
+  assert.match(html, /motionPreferenceChanges\.addEventListener\?\.\('change', syncMotionPreference\)/);
+  assert.match(html, /motionPreferenceChanges\.addListener\?\.\(syncMotionPreference\)/);
+  assert.match(html, /window\.addEventListener\('load', observeMotionPreferenceChanges, \{ once: true \}\)/);
+  assert.match(html, /syncMotionPreference\(motionPreferenceChanges\)/);
+  assert.match(html, /function syncMotionPreference\(event\)[\s\S]*?resetTouchMotion\(\);[\s\S]*?resetMotionField\(\);[\s\S]*?resizeMotionField\(\);/);
+});
+
+test('backs up motion media listeners with a layout observer', () => {
+  assert.match(html, /let lastMotionPreference = reduceMotion\.matches;/);
+  assert.match(html, /function syncMotionPreference\(event\)\s*{\s*lastMotionPreference = event\.matches;/);
+  assert.match(html, /const motionPreferenceObserver = typeof ResizeObserver === 'function'/);
+  assert.match(html, /new ResizeObserver\(\(\) =>\s*{\s*if \(reduceMotion\.matches !== lastMotionPreference\) syncMotionPreference\(reduceMotion\);/);
+  assert.match(html, /motionPreferenceObserver\?\.observe\(motionField\)/);
+});
+
+test('polls frozen motion media queries without a continuous animation frame', () => {
+  assert.match(html, /setInterval\(\(\) =>\s*{\s*if \(reduceMotion\.matches !== lastMotionPreference\) syncMotionPreference\(reduceMotion\);\s*}, 200\)/);
+  assert.doesNotMatch(html, /requestAnimationFrame\([^)]*syncMotionPreference/);
+});
+
+test('supports hybrid pointers and batches high-frequency touch motion', () => {
+  assert.match(html, /@media\s*\(any-hover:\s*hover\)\s*and\s*\(any-pointer:\s*fine\)/);
+  assert.match(html, /const finePointer = matchMedia\('\(any-hover: hover\) and \(any-pointer: fine\)'\);/);
+  assert.match(html, /const coarsePointer = matchMedia\('\(any-pointer: coarse\)'\);/);
+  assert.match(html, /let touchFrame;/);
+  assert.match(html, /function requestTouchMotion\(event, emitTrail = false\)/);
+  assert.match(html, /touchFrame = requestAnimationFrame\(\(\) =>/);
+  assert.match(html, /cancelAnimationFrame\(touchFrame\);\s*touchFrame = null;/);
+  assert.match(html, /event\.pointerType === 'touch'[\s\S]*?requestTouchMotion\(event, true\)/);
+});
+
+test('finishes touch cards with a primary-pointer release choreography', () => {
+  assert.match(html, /\.link-card\.is-touch-settling::after/);
+  assert.match(html, /@keyframes touchCardSettle/);
+  assert.match(html, /@keyframes touchArrowSettle/);
+  assert.match(html, /card\.classList\.add\('is-touch-settling'\)/);
+  assert.match(html, /cardResetTimer = setTimeout\(resetCardMotion, 480\)/);
+  assert.match(html, /event\.pointerType !== 'touch' \|\| !event\.isPrimary \|\| reduceMotion\.matches/);
+  assert.match(html, /function resetTouchMotion\(\{ preserveSettling = false \} = \{\}\)/);
+  assert.match(html, /setTimeout\(\(\) => resetTouchMotion\(\{ preserveSettling: true \}\), 360\)/);
+});
+
+test('keeps secondary touch pointers from cancelling primary motion', () => {
+  assert.match(html, /const resetCardPointerMotion = event =>\s*{\s*if \(event\.pointerType === 'touch' && !event\.isPrimary\) return;\s*resetCardMotion\(\);/);
+  assert.match(html, /card\.addEventListener\('pointerleave', resetCardPointerMotion\)/);
+  assert.match(html, /card\.addEventListener\('pointercancel', resetCardPointerMotion\)/);
+  assert.match(html, /heroArt\.addEventListener\('pointerup', event =>\s*{\s*if \(event\.pointerType === 'touch' && event\.isPrimary\) resetArtTilt\(\);/);
+  assert.match(html, /window\.addEventListener\('pointercancel', event =>\s*{\s*if \(event\.pointerType === 'touch'\)\s*{\s*if \(event\.pointerId === activeTouchPointer\) resetTouchMotion\(\);\s*return;/);
+});
+
 test('contains extreme layouts and cancels motion races', () => {
   assert.match(html, /html\s*{[\s\S]*?overflow-x:\s*clip/);
   assert.match(html, /class="sound-label">SFX ON<\/span>/);
@@ -236,14 +334,14 @@ test('contains extreme layouts and cancels motion races', () => {
   assert.match(html, /@media\s*\(max-width:\s*900px\)[\s\S]*?\.sound-label,[\s\S]*?\.audio-meter\s*{\s*display:\s*none/);
   assert.match(html, /@media\s*\(max-width:\s*900px\)[\s\S]*?\.sound-toggle\s*{[\s\S]*?width:\s*44px;[\s\S]*?min-width:\s*44px/);
   assert.match(html, /@media\s*\(max-width:\s*480px\)[\s\S]*?\.brand-copy\s*{\s*display:\s*none/);
-  assert.match(html, /const cardMotionScale = Math\.min\(Math\.max\(\(bounds\.width - 300\) \/ 240, 0\), 1\)/);
+  assert.match(html, /const cardMotionScale = isTouch[\s\S]*?: Math\.min\(Math\.max\(\(bounds\.width - 300\) \/ 240, 0\), 1\)/);
   assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.link-card\s*{[\s\S]*?--card-top-z:\s*0px;[\s\S]*?--card-copy-z:\s*0px;[\s\S]*?--card-bottom-z:\s*0px/);
   assert.match(html, /\.card-top,[\s\S]*?\.card-copy,[\s\S]*?\.card-bottom\s*{\s*min-width:\s*0;/);
   assert.match(html, /\.topbar\[data-reveal\],[\s\S]*?\.hero-cta\[data-reveal\]\s*{\s*scale:\s*1;/);
   assert.match(html, /function resetScrollMomentum\(\)\s*{\s*cancelAnimationFrame\(scrollFrame\);/);
-  assert.match(html, /reduceMotion\.addEventListener[\s\S]*?resetScrollMomentum\(\)/);
+  assert.match(html, /function syncMotionPreference\(event\)[\s\S]*?resetScrollMomentum\(\)/);
   assert.match(html, /const motionRings = \[\]/);
-  assert.match(html, /if \(motionRings\.length >= 4\) motionRings\.shift\(\)/);
+  assert.match(html, /if \(motionRings\.length >= ringLimit\) motionRings\.shift\(\)/);
   assert.match(html, /motionRings\.length = 0/);
   assert.match(html, /motionParticles\.length \|\| motionRings\.length/);
   assert.match(html, /body\.is-destination-scene \.links-section::after\s*{[\s\S]*?animation:\s*sceneBeamPulse/);
@@ -291,7 +389,7 @@ test('guides users to links and handles touch-only browser chrome', () => {
   assert.match(html, /rel="icon"[^>]*data:image\/svg\+xml/);
   assert.match(html, /class="hero-cta"[^>]*href="#destinations"/);
   assert.match(html, /id="destinations"/);
-  assert.match(html, /@media\s*\(hover:\s*hover\)\s*and\s*\(pointer:\s*fine\)[\s\S]*?\.link-card:hover/);
+  assert.match(html, /@media\s*\(any-hover:\s*hover\)\s*and\s*\(any-pointer:\s*fine\)[\s\S]*?\.link-card:hover/);
   assert.match(html, /safe-area-inset-left/);
   assert.match(html, /\.hero-cta\s*{[\s\S]*?min-height:\s*2\.75rem/);
   assert.match(html, /\.brand\s*{[\s\S]*?min-height:\s*2\.75rem/);
@@ -311,14 +409,16 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.8.2 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.8\.2"/);
-  assert.equal((html.match(/v2\.8\.2/g) ?? []).length, 2);
-  assert.match(html, /data-version="2\.8\.2"/);
-  assert.match(readme, /Current release: \*\*v2\.8\.2\*\*/);
-  assert.match(readme, /v2\.8\.1 archive/);
-  assert.match(announcement, /v2\.8\.2/);
-  assert.match(announcement, /history\/v2\.8\.1\.md/);
+test('publishes v2.8.3 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.8\.3"/);
+  assert.equal((html.match(/v2\.8\.3/g) ?? []).length, 2);
+  assert.match(html, /data-version="2\.8\.3"/);
+  assert.match(readme, /Current release: \*\*v2\.8\.3\*\*/);
+  assert.match(readme, /v2\.8\.2 archive/);
+  assert.match(announcement, /v2\.8\.3/);
+  assert.match(announcement, /history\/v2\.8\.2\.md/);
+  assert.match(historyV282, /v2\.8\.2/);
+  assert.match(historyV282, /当前公告/);
   assert.match(historyV281, /v2\.8\.1/);
   assert.match(historyV281, /当前公告/);
   assert.match(historyV28, /v2\.8\.0/);

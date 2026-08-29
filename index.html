@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.8.2">
+<meta name="application-version" content="2.8.3">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -49,6 +49,7 @@ html {
 body {
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100svh;
   margin: 0;
   overflow-x: hidden;
   background: #090a0d;
@@ -519,6 +520,7 @@ h2 {
 .site-shell {
   width: min(100%, 96rem);
   min-height: 100vh;
+  min-height: 100svh;
   margin: 0 auto;
   padding-top: env(safe-area-inset-top, 0px);
   padding-left: max(clamp(1.25rem, 4vw, 4.5rem), env(safe-area-inset-left, 0px));
@@ -707,6 +709,17 @@ body.is-scrolled .topbar {
   gap: clamp(2rem, 6vw, 8rem);
   padding: clamp(5rem, 9vw, 9.5rem) 0;
   isolation: isolate;
+}
+
+@supports (height: 100dvh) {
+  body,
+  .site-shell {
+    min-height: 100dvh;
+  }
+
+  .hero {
+    min-height: min(51rem, calc(100dvh - 6.75rem));
+  }
 }
 
 .hero::before {
@@ -1558,7 +1571,7 @@ main:focus {
   }
 }
 
-@media (hover: hover) and (pointer: fine) {
+@media (any-hover: hover) and (any-pointer: fine) {
   .pointer-lens,
   .motion-field {
     display: block;
@@ -1612,6 +1625,104 @@ main:focus {
     background: var(--ink);
     color: #0c0d10;
     transform: rotate(45deg);
+  }
+}
+
+.link-card.is-touch-active {
+  --card-lift: -4px;
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: 0 1.5rem 3.5rem rgba(0, 0, 0, 0.3);
+  transition-duration: 120ms;
+}
+
+.link-card.is-touch-active::before {
+  opacity: 1;
+}
+
+.link-card.is-touch-active::after {
+  opacity: 0.82;
+  animation: touchCardAura 620ms ease-out;
+}
+
+.link-card.is-touch-active .card-copy h3 {
+  letter-spacing: -0.025em;
+  text-shadow: 0 0 2.4rem rgba(158, 232, 239, 0.18);
+  transform: translateX(0.12rem);
+}
+
+.link-card.is-touch-active .card-bottom::after {
+  opacity: 1;
+  transform: translateX(260%);
+}
+
+.link-card.is-touch-active .card-arrow {
+  background: var(--ink);
+  color: #0c0d10;
+  transform: rotate(45deg) scale(1.04);
+}
+
+.link-card.is-touch-settling::after {
+  animation: touchCardSettle 480ms var(--ease) both;
+}
+
+.link-card.is-touch-settling .card-arrow::before {
+  animation: touchArrowSettle 480ms var(--ease) both;
+}
+
+.hero-art.is-touch-active .art-stage {
+  transition-duration: 90ms;
+}
+
+.sound-toggle:active,
+.hero-cta:active {
+  --control-lift: 1px;
+  border-color: rgba(158, 232, 239, 0.38);
+  background: rgba(158, 232, 239, 0.12);
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .motion-field {
+    display: block;
+    opacity: 0.36;
+    transition: opacity 260ms ease;
+  }
+
+  body.is-touching .motion-field {
+    opacity: 0.68;
+  }
+
+  .sound-label,
+  .audio-meter {
+    display: none;
+  }
+
+  .sound-toggle {
+    width: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sound-toggle svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+  }
+
+  .backdrop::after {
+    width: 28rem;
+    height: 28rem;
+    opacity: 0.62;
+    transform: translate3d(calc(var(--pointer-x) - 14rem), calc(var(--pointer-y) - 14rem), 0);
+    transition: transform 120ms linear, opacity 260ms ease;
+  }
+
+  body.is-touching .backdrop::after {
+    opacity: 1;
+  }
+
+  .link-card {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -1759,6 +1870,43 @@ body.is-destination-scene .links-section::after {
   }
 }
 
+@keyframes touchCardAura {
+  from {
+    opacity: 0.96;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 0.34;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes touchCardSettle {
+  from {
+    opacity: 0.72;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes touchArrowSettle {
+  0% {
+    opacity: 0.7;
+    transform: rotate(-90deg) scale(0.45);
+  }
+  55% {
+    opacity: 0.9;
+    transform: rotate(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(70deg) scale(1.18);
+  }
+}
+
 @keyframes scrollCue {
   0% { opacity: 0; transform: translateY(-120%); }
   35% { opacity: 1; }
@@ -1853,6 +2001,11 @@ body.is-destination-scene .links-section::after {
 
   .topbar {
     min-height: 5.5rem;
+  }
+
+  body.is-scrolled .topbar {
+    backdrop-filter: blur(12px) saturate(125%);
+    -webkit-backdrop-filter: blur(12px) saturate(125%);
   }
 
   .portal-status,
@@ -2056,7 +2209,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 </style>
 </noscript>
 </head>
-<body data-version="2.8.2">
+<body data-version="2.8.3">
 <a class="skip-link" href="#main">跳到主要内容</a>
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
 <canvas class="motion-field" aria-hidden="true"></canvas>
@@ -2102,7 +2255,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.8.2 · Link portal
+        v2.8.3 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效" data-magnetic data-ripple>
@@ -2253,7 +2406,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.2</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.3</p>
   </footer>
 </div>
 
@@ -2270,7 +2423,9 @@ const bgmToggle = document.getElementById('bgmToggle');
 const soundLabel = soundToggle.querySelector('.sound-label');
 const bgmLabel = bgmToggle.querySelector('.sound-label');
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const finePointer = matchMedia('(hover: hover) and (pointer: fine)');
+let lastMotionPreference = reduceMotion.matches;
+const finePointer = matchMedia('(any-hover: hover) and (any-pointer: fine)');
+const coarsePointer = matchMedia('(any-pointer: coarse)');
 const AudioEngine = window.AudioContext || window.webkitAudioContext;
 let introTimer;
 let introHideTimer;
@@ -2288,12 +2443,19 @@ let motionFieldFrame;
 let motionFieldScale = 1;
 const motionParticles = [];
 const motionRings = [];
+let activeTouchPointer;
+let touchLastX = innerWidth / 2;
+let touchLastY = innerHeight / 2;
+let touchResetTimer;
+let touchFrame;
+let pendingTouchMotion;
 let audioContext;
 let masterGain;
 let sfxGain;
 let bgmBus;
 let bgmVoice;
 let resumePromise;
+let resumeContext;
 let suspendPromise;
 let resumeAfterVisibility = false;
 let resumeAfterPageShow = false;
@@ -2346,9 +2508,6 @@ intro.addEventListener('pointerdown', () => {
     if (context) playSfx('on');
   });
 }, { once: true });
-reduceMotion.addEventListener?.('change', event => {
-  if (event.matches) finishIntro();
-});
 
 function initViewportReveals() {
   const items = [...document.querySelectorAll('[data-reveal]')];
@@ -2378,12 +2537,13 @@ function initViewportReveals() {
 }
 
 function resizeMotionField() {
-  if (!motionContext || !finePointer.matches || reduceMotion.matches) {
+  const hasMotionPointer = finePointer.matches || coarsePointer.matches;
+  if (!motionContext || !hasMotionPointer || reduceMotion.matches) {
     motionField.width = 1;
     motionField.height = 1;
     return;
   }
-  motionFieldScale = Math.min(devicePixelRatio || 1, 2);
+  motionFieldScale = Math.min(devicePixelRatio || 1, coarsePointer.matches ? 1.5 : 2);
   motionField.width = Math.round(innerWidth * motionFieldScale);
   motionField.height = Math.round(innerHeight * motionFieldScale);
   motionContext.setTransform(motionFieldScale, 0, 0, motionFieldScale, 0, 0);
@@ -2448,14 +2608,26 @@ function renderMotionField() {
 }
 
 function emitMotionParticles(x, y, velocityX = 0, velocityY = 0, burst = false) {
-  if (!motionContext || !finePointer.matches || reduceMotion.matches) return;
+  const hasMotionPointer = finePointer.matches || coarsePointer.matches;
+  if (!motionContext || !hasMotionPointer || reduceMotion.matches) return;
+  const particleLimit = coarsePointer.matches ? 24 : 48;
+  const ringLimit = coarsePointer.matches ? 2 : 4;
+  const burstCount = coarsePointer.matches ? 6 : 10;
   if (burst) {
-    if (motionRings.length >= 4) motionRings.shift();
-    motionRings.push({ x, y, radius: 8, velocity: 5.8, life: 1, decay: 0.035, color: '255, 179, 159' });
+    if (motionRings.length >= ringLimit) motionRings.shift();
+    motionRings.push({
+      x,
+      y,
+      radius: 8,
+      velocity: coarsePointer.matches ? 4.8 : 5.8,
+      life: 1,
+      decay: coarsePointer.matches ? 0.05 : 0.035,
+      color: '255, 179, 159',
+    });
   }
-  const count = burst ? 10 : 1;
+  const count = burst ? burstCount : 1;
   for (let index = 0; index < count; index += 1) {
-    if (motionParticles.length >= 48) motionParticles.shift();
+    if (motionParticles.length >= particleLimit) motionParticles.shift();
     const angle = Math.random() * Math.PI * 2;
     const speed = 0.8 + Math.random() * 2.4;
     const driftX = Math.max(-2.4, Math.min(-velocityX * 0.045, 2.4));
@@ -2466,7 +2638,9 @@ function emitMotionParticles(x, y, velocityX = 0, velocityY = 0, burst = false) 
       vx: burst ? Math.cos(angle) * speed : driftX + (Math.random() - 0.5) * 0.7,
       vy: burst ? Math.sin(angle) * speed : driftY + (Math.random() - 0.5) * 0.7,
       life: 1,
-      decay: burst ? 0.025 + Math.random() * 0.018 : 0.045 + Math.random() * 0.025,
+      decay: burst
+        ? (coarsePointer.matches ? 0.04 : 0.025) + Math.random() * 0.018
+        : (coarsePointer.matches ? 0.065 : 0.045) + Math.random() * 0.025,
       radius: 0.8 + Math.random() * (burst ? 2.2 : 1.1),
       color: index % 3 ? '158, 232, 239' : '255, 118, 87',
     });
@@ -2521,8 +2695,16 @@ finePointer.addEventListener?.('change', () => {
   resetMotionField();
   resizeMotionField();
 });
+coarsePointer.addEventListener?.('change', () => {
+  resetTouchMotion();
+  resetMotionField();
+  resizeMotionField();
+});
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) resetMotionField();
+  if (document.hidden) {
+    resetTouchMotion();
+    resetMotionField();
+  }
 });
 
 function disableAudioControls() {
@@ -2585,15 +2767,15 @@ function suspendAudioPlayback() {
   return tracked;
 }
 
-async function resumeAudio() {
+async function resumeAudio(context) {
   try {
-    await audioContext.resume();
-    if (document.hidden && audioContext.state === 'running') {
+    await context.resume();
+    if (document.hidden && context.state === 'running') {
       resumeAfterVisibility = hasActiveAudioIntent();
       await suspendAudioPlayback();
       return false;
     }
-    return audioContext.state === 'running';
+    return context.state === 'running';
   } catch {
     if (document.hidden) resumeAfterVisibility = hasActiveAudioIntent();
     return false;
@@ -2614,13 +2796,20 @@ async function ensureAudio() {
     bgmVoice = null;
   }
   if (!audioContext && !createAudioGraph()) return null;
-  if (audioContext.state !== 'running') {
-    if (!resumePromise) {
-      resumePromise = resumeAudio().finally(() => { resumePromise = null; });
+  const context = audioContext;
+  if (context.state !== 'running') {
+    if (!resumePromise || resumeContext !== context) {
+      const tracked = resumeAudio(context).finally(() => {
+        if (resumePromise === tracked) resumePromise = null;
+        if (resumeContext === context) resumeContext = null;
+      });
+      resumeContext = context;
+      resumePromise = tracked;
     }
-    if (!await resumePromise) return null;
+    const resumed = await resumePromise;
+    if (audioContext !== context || context.state === 'closed' || !resumed) return null;
   }
-  return audioContext;
+  return context;
 }
 
 function rampGain(parameter, target, duration) {
@@ -2872,9 +3061,7 @@ document.querySelectorAll('[data-sfx]').forEach(element => {
   });
 });
 
-function resetCardTilt(card) {
-  card.style.setProperty('--card-x', '50%');
-  card.style.setProperty('--card-y', '50%');
+function resetCardDepth(card) {
   card.style.setProperty('--card-rx', '0deg');
   card.style.setProperty('--card-ry', '0deg');
   card.style.setProperty('--card-top-x', '0px');
@@ -2885,23 +3072,55 @@ function resetCardTilt(card) {
   card.style.setProperty('--card-bottom-y', '0px');
 }
 
+function resetCardTilt(card) {
+  card.style.setProperty('--card-x', '50%');
+  card.style.setProperty('--card-y', '50%');
+  resetCardDepth(card);
+}
+
 document.querySelectorAll('.link-card').forEach(card => {
   let cardFrame;
+  let cardResetTimer;
   const resetCardMotion = () => {
+    clearTimeout(cardResetTimer);
+    cardResetTimer = null;
+    card.classList.remove('is-touch-settling');
     cancelAnimationFrame(cardFrame);
     cardFrame = null;
+    card.classList.remove('is-touch-active');
     resetCardTilt(card);
   };
-  card.addEventListener('pointermove', event => {
-    if (event.pointerType !== 'mouse' || reduceMotion.matches || cardFrame) return;
+  const settleCardMotion = () => {
+    clearTimeout(cardResetTimer);
+    cancelAnimationFrame(cardFrame);
+    cardFrame = null;
+    card.classList.remove('is-touch-active');
+    resetCardDepth(card);
+    card.classList.add('is-touch-settling');
+    cardResetTimer = setTimeout(resetCardMotion, 480);
+  };
+  const resetCardPointerMotion = event => {
+    if (event.pointerType === 'touch' && !event.isPrimary) return;
+    resetCardMotion();
+  };
+  const updateCardMotion = event => {
+    const isTouch = event.pointerType === 'touch';
+    if (
+      reduceMotion.matches
+      || (event.pointerType !== 'mouse' && !isTouch)
+      || (isTouch && !card.classList.contains('is-touch-active'))
+      || cardFrame
+    ) return;
     const { clientX, clientY } = event;
     cardFrame = requestAnimationFrame(() => {
       cardFrame = null;
       if (reduceMotion.matches) return;
       const bounds = card.getBoundingClientRect();
-      const cardMotionScale = Math.min(Math.max((bounds.width - 300) / 240, 0), 1);
-      const x = (clientX - bounds.left) / bounds.width;
-      const y = (clientY - bounds.top) / bounds.height;
+      const cardMotionScale = isTouch
+        ? Math.min(Math.max(bounds.width / 520, 0.48), 0.72)
+        : Math.min(Math.max((bounds.width - 300) / 240, 0), 1);
+      const x = Math.min(Math.max((clientX - bounds.left) / bounds.width, 0), 1);
+      const y = Math.min(Math.max((clientY - bounds.top) / bounds.height, 0), 1);
       card.style.setProperty('--card-x', `${x * 100}%`);
       card.style.setProperty('--card-y', `${y * 100}%`);
       card.style.setProperty('--card-rx', `${(0.5 - y) * 7 * cardMotionScale}deg`);
@@ -2913,21 +3132,40 @@ document.querySelectorAll('.link-card').forEach(card => {
       card.style.setProperty('--card-bottom-x', `${(x - 0.5) * 4 * cardMotionScale}px`);
       card.style.setProperty('--card-bottom-y', `${(0.5 - y) * 2 * cardMotionScale}px`);
     });
+  };
+  card.addEventListener('pointerdown', event => {
+    if (event.pointerType !== 'touch' || !event.isPrimary || reduceMotion.matches) return;
+    clearTimeout(cardResetTimer);
+    card.classList.remove('is-touch-settling');
+    card.classList.add('is-touch-active');
+    updateCardMotion(event);
   }, { passive: true });
-  card.addEventListener('pointerleave', resetCardMotion);
-  card.addEventListener('pointercancel', resetCardMotion);
+  card.addEventListener('pointermove', updateCardMotion, { passive: true });
+  card.addEventListener('pointerup', event => {
+    if (event.pointerType !== 'touch' || !event.isPrimary) return;
+    settleCardMotion();
+  }, { passive: true });
+  card.addEventListener('pointerleave', resetCardPointerMotion);
+  card.addEventListener('pointercancel', resetCardPointerMotion);
 });
 
 let artFrame;
 function resetArtTilt() {
   cancelAnimationFrame(artFrame);
   artFrame = null;
+  heroArt.classList.remove('is-touch-active');
   root.style.setProperty('--art-rx', '0deg');
   root.style.setProperty('--art-ry', '0deg');
 }
 
-heroArt.addEventListener('pointermove', event => {
-  if (event.pointerType !== 'mouse' || reduceMotion.matches || artFrame) return;
+function updateArtTilt(event) {
+  const isTouch = event.pointerType === 'touch';
+  if (
+    reduceMotion.matches
+    || (event.pointerType !== 'mouse' && !isTouch)
+    || (isTouch && !heroArt.classList.contains('is-touch-active'))
+    || artFrame
+  ) return;
   const { clientX, clientY } = event;
   artFrame = requestAnimationFrame(() => {
     artFrame = null;
@@ -2935,12 +3173,27 @@ heroArt.addEventListener('pointermove', event => {
     const bounds = heroArt.getBoundingClientRect();
     const x = (clientX - bounds.left) / bounds.width;
     const y = (clientY - bounds.top) / bounds.height;
-    root.style.setProperty('--art-rx', `${(0.5 - y) * 8}deg`);
-    root.style.setProperty('--art-ry', `${(x - 0.5) * 10}deg`);
+    const motionScale = isTouch ? 0.58 : 1;
+    root.style.setProperty('--art-rx', `${(0.5 - y) * 8 * motionScale}deg`);
+    root.style.setProperty('--art-ry', `${(x - 0.5) * 10 * motionScale}deg`);
   });
+}
+
+heroArt.addEventListener('pointerdown', event => {
+  if (event.pointerType !== 'touch' || !event.isPrimary || reduceMotion.matches) return;
+  heroArt.classList.add('is-touch-active');
+  updateArtTilt(event);
 }, { passive: true });
-heroArt.addEventListener('pointerleave', resetArtTilt);
-heroArt.addEventListener('pointercancel', resetArtTilt);
+heroArt.addEventListener('pointermove', updateArtTilt, { passive: true });
+heroArt.addEventListener('pointerup', event => {
+  if (event.pointerType === 'touch' && event.isPrimary) resetArtTilt();
+}, { passive: true });
+const resetArtPointerMotion = event => {
+  if (event.pointerType === 'touch' && !event.isPrimary) return;
+  resetArtTilt();
+};
+heroArt.addEventListener('pointerleave', resetArtPointerMotion);
+heroArt.addEventListener('pointercancel', resetArtPointerMotion);
 
 function updatePointerMotion() {
   pointerFrame = null;
@@ -2989,8 +3242,68 @@ function resetPointerMotion() {
   document.body.classList.remove('has-pointer', 'is-pointer-interactive', 'is-pointer-down');
 }
 
+function updateTouchMotion(event, emitTrail = false) {
+  const velocityX = event.clientX - touchLastX;
+  const velocityY = event.clientY - touchLastY;
+  const driftX = (event.clientX / Math.max(innerWidth, 1) - 0.5) * 8;
+  const driftY = (event.clientY / Math.max(innerHeight, 1) - 0.5) * 6;
+  root.style.setProperty('--pointer-x', `${event.clientX}px`);
+  root.style.setProperty('--pointer-y', `${event.clientY}px`);
+  root.style.setProperty('--pointer-drift-x', `${driftX}px`);
+  root.style.setProperty('--pointer-drift-y', `${driftY}px`);
+  root.style.setProperty('--pointer-counter-x', `${-driftX * 0.6}px`);
+  root.style.setProperty('--pointer-counter-y', `${-driftY * 0.6}px`);
+  if (emitTrail) emitMotionParticles(event.clientX, event.clientY, velocityX, velocityY);
+  touchLastX = event.clientX;
+  touchLastY = event.clientY;
+}
+
+function requestTouchMotion(event, emitTrail = false) {
+  pendingTouchMotion = { clientX: event.clientX, clientY: event.clientY, emitTrail };
+  if (touchFrame) return;
+  touchFrame = requestAnimationFrame(() => {
+    touchFrame = null;
+    const motion = pendingTouchMotion;
+    pendingTouchMotion = null;
+    if (motion && !reduceMotion.matches) updateTouchMotion(motion, motion.emitTrail);
+  });
+}
+
+function resetTouchMotion({ preserveSettling = false } = {}) {
+  clearTimeout(touchResetTimer);
+  touchResetTimer = null;
+  cancelAnimationFrame(touchFrame);
+  touchFrame = null;
+  pendingTouchMotion = null;
+  activeTouchPointer = null;
+  touchLastX = innerWidth / 2;
+  touchLastY = innerHeight / 2;
+  document.body.classList.remove('is-touching');
+  root.style.setProperty('--pointer-x', '50vw');
+  root.style.setProperty('--pointer-y', '50vh');
+  root.style.setProperty('--pointer-drift-x', '0px');
+  root.style.setProperty('--pointer-drift-y', '0px');
+  root.style.setProperty('--pointer-counter-x', '0px');
+  root.style.setProperty('--pointer-counter-y', '0px');
+  const touchCards = preserveSettling
+    ? document.querySelectorAll('.link-card.is-touch-active')
+    : document.querySelectorAll('.link-card:is(.is-touch-active, .is-touch-settling)');
+  touchCards.forEach(card => {
+    card.classList.remove('is-touch-active');
+    if (!preserveSettling) card.classList.remove('is-touch-settling');
+    resetCardTilt(card);
+  });
+  resetArtTilt();
+}
+
 window.addEventListener('pointermove', event => {
-  if (reduceMotion.matches || event.pointerType !== 'mouse') return;
+  if (reduceMotion.matches) return;
+  if (event.pointerType === 'touch') {
+    if (event.pointerId !== activeTouchPointer) return;
+    requestTouchMotion(event, true);
+    return;
+  }
+  if (event.pointerType !== 'mouse') return;
   const hasPointer = document.body.classList.contains('has-pointer');
   if (!hasPointer) {
     pointerCurrentX = event.clientX;
@@ -3014,36 +3327,99 @@ document.querySelectorAll('a, button').forEach(element => {
 });
 
 window.addEventListener('pointerdown', event => {
-  if (event.pointerType !== 'mouse' || reduceMotion.matches) return;
+  if (reduceMotion.matches) return;
+  if (event.pointerType === 'touch') {
+    if (!event.isPrimary) return;
+    clearTimeout(touchResetTimer);
+    activeTouchPointer = event.pointerId;
+    touchLastX = event.clientX;
+    touchLastY = event.clientY;
+    document.body.classList.add('is-touching');
+    updateTouchMotion(event);
+    emitMotionParticles(event.clientX, event.clientY, 0, 0, true);
+    return;
+  }
+  if (event.pointerType !== 'mouse') return;
   document.body.classList.add('is-pointer-down');
   emitMotionParticles(event.clientX, event.clientY, 0, 0, true);
 }, { passive: true });
-window.addEventListener('pointerup', () => document.body.classList.remove('is-pointer-down'), { passive: true });
-window.addEventListener('pointercancel', resetPointerMotion, { passive: true });
-window.addEventListener('blur', resetPointerMotion);
+window.addEventListener('pointerup', event => {
+  if (event.pointerType === 'touch' && event.pointerId === activeTouchPointer) {
+    requestTouchMotion(event);
+    emitMotionParticles(event.clientX, event.clientY, 0, 0, true);
+    touchResetTimer = setTimeout(() => resetTouchMotion({ preserveSettling: true }), 360);
+    return;
+  }
+  if (event.pointerType === 'mouse') document.body.classList.remove('is-pointer-down');
+}, { passive: true });
+window.addEventListener('pointercancel', event => {
+  if (event.pointerType === 'touch') {
+    if (event.pointerId === activeTouchPointer) resetTouchMotion();
+    return;
+  }
+  resetPointerMotion();
+}, { passive: true });
+window.addEventListener('blur', () => {
+  resetPointerMotion();
+  resetTouchMotion();
+});
 document.documentElement.addEventListener('pointerleave', event => {
   if (event.pointerType === 'mouse') resetPointerMotion();
 }, { passive: true });
 
-reduceMotion.addEventListener?.('change', event => {
+function syncMotionPreference(event) {
+  lastMotionPreference = event.matches;
+  if (event.matches) finishIntro();
   resetScrollMomentum();
-  if (!event.matches) {
-    resizeMotionField();
-    updateScrollMotion();
-    return;
-  }
+  resetTouchMotion();
   resetMotionField();
   resizeMotionField();
   resetPointerMotion();
-  resetArtTilt();
-  document.querySelectorAll('.link-card').forEach(resetCardTilt);
+  document.querySelectorAll('.link-card').forEach(card => {
+    card.classList.remove('is-touch-active', 'is-touch-settling');
+    resetCardTilt(card);
+  });
   document.querySelectorAll('[data-magnetic]').forEach(resetMagnetic);
-  document.querySelectorAll('[data-reveal]').forEach(element => element.classList.add('is-visible'));
+  if (event.matches) {
+    document.querySelectorAll('[data-reveal]').forEach(element => element.classList.add('is-visible'));
+  }
   updateScrollMotion();
-});
+}
+
+const motionPreferenceObserver = typeof ResizeObserver === 'function'
+  ? new ResizeObserver(() => {
+    if (reduceMotion.matches !== lastMotionPreference) syncMotionPreference(reduceMotion);
+  })
+  : null;
+motionPreferenceObserver?.observe(motionField);
+setInterval(() => {
+  if (reduceMotion.matches !== lastMotionPreference) syncMotionPreference(reduceMotion);
+}, 200);
+
+let motionPreferenceChanges;
+function observeMotionPreferenceChanges() {
+  if (motionPreferenceChanges) return;
+  motionPreferenceChanges = matchMedia('(prefers-reduced-motion: reduce)');
+  motionPreferenceChanges.addEventListener?.('change', syncMotionPreference);
+  if (!motionPreferenceChanges.addEventListener) {
+    motionPreferenceChanges.addListener?.(syncMotionPreference);
+  }
+  syncMotionPreference(motionPreferenceChanges);
+}
+
+if (document.readyState === 'complete') observeMotionPreferenceChanges();
+else window.addEventListener('load', observeMotionPreferenceChanges, { once: true });
 
 function hasActiveAudioIntent() {
   return sfxEnabled || bgmEnabled;
+}
+
+function shouldRestoreAudio(context) {
+  return hasActiveAudioIntent() && (
+    context.state === 'running'
+    || context.state === 'interrupted'
+    || (bgmEnabled && Boolean(bgmVoice))
+  );
 }
 
 async function restoreAudioPlayback() {
@@ -3077,7 +3453,7 @@ async function restoreAudioPlayback() {
 document.addEventListener('visibilitychange', async () => {
   if (!audioContext || audioContext.state === 'closed') return;
   if (document.hidden) {
-    resumeAfterVisibility = hasActiveAudioIntent() && (audioContext.state === 'running' || audioContext.state === 'interrupted');
+    resumeAfterVisibility = shouldRestoreAudio(audioContext);
     if (audioContext.state === 'running') {
       await suspendAudioPlayback();
     }
@@ -3102,7 +3478,7 @@ window.addEventListener('pagehide', async event => {
   clearTimeout(introHideTimer);
   if (!audioContext || audioContext.state === 'closed') return;
   if (event.persisted) {
-    resumeAfterPageShow = hasActiveAudioIntent() && (audioContext.state === 'running' || audioContext.state === 'interrupted');
+    resumeAfterPageShow = shouldRestoreAudio(audioContext);
     await suspendAudioPlayback();
     return;
   }
