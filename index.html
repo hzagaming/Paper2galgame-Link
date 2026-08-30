@@ -51,13 +51,12 @@ body {
   min-height: 100vh;
   min-height: 100svh;
   margin: 0;
-  overflow-x: hidden;
+  overflow-x: clip;
   background: #090a0d;
   color: var(--ink);
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   isolation: isolate;
-  overscroll-behavior-y: none;
 }
 
 ::selection {
@@ -1087,7 +1086,6 @@ h1 .title-accent {
   position: relative;
   padding: clamp(5rem, 9vw, 9rem) 0;
   border-top: 1px solid var(--line);
-  scroll-margin-top: 8rem;
 }
 
 .links-section::before {
@@ -1681,6 +1679,25 @@ main:focus {
 }
 
 @media (hover: none) and (pointer: coarse) {
+  [data-reveal] {
+    filter: none;
+    scale: 1;
+    translate: none;
+    transition: none;
+  }
+
+  .is-ready [data-reveal].is-visible {
+    animation: touchRevealIn 620ms var(--ease) var(--delay, 0ms) both;
+  }
+
+  .link-card[data-reveal] {
+    transition: transform 180ms ease-out, border-color 320ms ease, box-shadow 420ms var(--ease);
+  }
+
+  .hero-cta[data-reveal] {
+    transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
+  }
+
   .motion-field {
     display: block;
     opacity: 0.36;
@@ -1878,6 +1895,15 @@ body.is-destination-scene .links-section::after {
   to {
     opacity: 0.34;
     transform: scale(1.04);
+  }
+}
+
+@keyframes touchRevealIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

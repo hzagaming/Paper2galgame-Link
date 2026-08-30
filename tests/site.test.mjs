@@ -263,6 +263,19 @@ test('gives coarse pointers a bounded tactile motion system', () => {
   assert.match(html, /function syncMotionPreference\(event\)[\s\S]*?resetTouchMotion\(\)/);
 });
 
+test('keeps native touch scrolling available during reveal choreography', () => {
+  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\[data-reveal\]\s*{[\s\S]*?filter:\s*none;[\s\S]*?scale:\s*1;[\s\S]*?translate:\s*none;[\s\S]*?transition:\s*none;/);
+  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\.is-ready \[data-reveal\]\.is-visible\s*{\s*animation:\s*touchRevealIn 620ms var\(--ease\) var\(--delay, 0ms\) both;/);
+  assert.match(html, /@keyframes touchRevealIn\s*{\s*from\s*{\s*opacity:\s*0;\s*}\s*to\s*{\s*opacity:\s*1;\s*}\s*}/);
+  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\.link-card\[data-reveal\]\s*{\s*transition:\s*transform 180ms ease-out, border-color 320ms ease, box-shadow 420ms var\(--ease\);/);
+});
+
+test('preserves sticky navigation and natural mobile scroll boundaries', () => {
+  assert.match(html, /body\s*{[^}]*overflow-x:\s*clip;/);
+  assert.doesNotMatch(html, /body\s*{[^}]*overscroll-behavior-y:\s*none;/);
+  assert.doesNotMatch(html, /\.links-section\s*{[^}]*scroll-margin-top:/);
+});
+
 test('stabilizes mobile browser chrome and touch feedback', () => {
   assert.match(html, /body\s*{[\s\S]*?min-height:\s*100svh/);
   assert.match(html, /\.site-shell\s*{[\s\S]*?min-height:\s*100svh/);
