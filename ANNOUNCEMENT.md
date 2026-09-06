@@ -1,18 +1,17 @@
-# v2.8.3：全平台触觉动效与音频恢复稳定性升级
+# v2.8.4：主标题显示与全输入滚动稳定性修复
 
-发布日期：2026-08-30
+发布日期：2026-09-06
 
-本次补丁围绕桌面、手机、平板和混合输入设备完成 UI、UX、动画、SFX 与 BGM 深度审查，强化触摸反馈、移动性能和动态偏好适配，并修复系统关闭或自动挂起 AudioContext 时的恢复竞态。
+本次补丁修正宽屏主标题比例，并补齐纯触屏、混合输入与输入能力动态切换时的原生纵向滚动路径，在保留现有切片、卡片、粒子与主视觉动画的同时消除偶发滑动停滞。
 
 ## 更新内容
 
-- 新增移动端触摸轨迹、按压能量环、卡片分层姿态与松手余波，主视觉也会响应主触点，并在多指交互中保持稳定。
-- 触摸高频事件统一经 requestAnimationFrame 合帧；手机 Canvas 使用独立粒子、能量环和 DPR 上限，兼顾细腻反馈与持续性能。
-- 支持鼠标、触摸与混合输入设备动态切换，补齐 `svh`/`dvh`、安全区、窄横屏、极端字号及 44px 触控目标适配。
-- 增强实时 reduced-motion 同步与观察器兜底；偏好切换时会完整清理触摸状态、粒子、余波、视差和待执行帧。
-- 隔离不同 AudioContext 的在途 resume；旧上下文被系统关闭后，新上下文不再复用过期 Promise 或错误回滚 SFX/BGM 状态。
-- 正在播放 BGM 时，即使浏览器先自动挂起音频再派发隐藏或 BFCache 事件，返回页面后也会按最新声音意图恢复。
-- 完成 21 组 320×568 至 1024×768、100%–400% 字号与横竖屏组合复验，零横向溢出，卡片和交互目标保持完整。
-- 复验键盘导航、跳转链接、ARIA、强制配色、实时动效偏好、音频构图故障及页面生命周期，未发现剩余控制台错误。
+- 主标题改为依据左侧内容栏宽度缩放，不再按整个视口无限放大；降低宽屏上限并放松字距、行距，让 `Paper / to / Galgame.` 与右侧主视觉保持清晰层级。
+- 保留手机端字号、三段标题切片和 reduced-motion 降级路径，避免标题修正影响窄屏布局与无障碍偏好。
+- 所有具有粗指针能力的设备统一使用无几何位移的淡入动画，覆盖触屏电脑、外接鼠标平板和部分 WebView 的混合输入分支。
+- 页面明确启用原生纵向 `pan-y` 并保留 `pinch-zoom`，连续上下反向滑动不再受到触摸反馈动画竞争。
+- 修复横向裁切创建额外滚动容器导致的吸顶栏失效，并恢复页面上下边界的自然滚动反馈。
+- 移除 CTA 锚点的双重顶部偏移，跳转后章节标题稳定落在吸顶导航下方。
+- 复验 320–1688px 宽度、横竖屏、开场多个时间点、连续反向滑动与运行中输入能力切换，未发现横向溢出或控制台错误。
 
-上一版本内容已移入 [v2.8.2 历史公告](docs/announcements/history/v2.8.2.md)，更早版本见 [v2.8.1](docs/announcements/history/v2.8.1.md)、[v2.8.0](docs/announcements/history/v2.8.0.md)、[v2.7.0](docs/announcements/history/v2.7.0.md)、[v2.6.0](docs/announcements/history/v2.6.0.md)、[v2.5.0](docs/announcements/history/v2.5.0.md)、[v2.4.0](docs/announcements/history/v2.4.0.md)、[v2.3.0](docs/announcements/history/v2.3.0.md)、[v2.2.0](docs/announcements/history/v2.2.0.md)、[v2.1.0](docs/announcements/history/v2.1.0.md) 与 [v2.0.0](docs/announcements/history/v2.0.0.md) 历史公告。
+上一版本内容已移入 [v2.8.3 历史公告](docs/announcements/history/v2.8.3.md)，更早版本见 [v2.8.2](docs/announcements/history/v2.8.2.md)、[v2.8.1](docs/announcements/history/v2.8.1.md)、[v2.8.0](docs/announcements/history/v2.8.0.md)、[v2.7.0](docs/announcements/history/v2.7.0.md)、[v2.6.0](docs/announcements/history/v2.6.0.md)、[v2.5.0](docs/announcements/history/v2.5.0.md)、[v2.4.0](docs/announcements/history/v2.4.0.md)、[v2.3.0](docs/announcements/history/v2.3.0.md)、[v2.2.0](docs/announcements/history/v2.2.0.md)、[v2.1.0](docs/announcements/history/v2.1.0.md) 与 [v2.0.0](docs/announcements/history/v2.0.0.md) 历史公告。

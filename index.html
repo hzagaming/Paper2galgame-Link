@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="Hanazar Ochikawa 策划的 Paper2Galgame 非官方链接入口。">
 <meta name="theme-color" content="#090a0d">
-<meta name="application-version" content="2.8.3">
+<meta name="application-version" content="2.8.4">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23090a0d'/%3E%3Ctext x='32' y='39' text-anchor='middle' font-family='serif' font-size='20' font-style='italic' fill='%23ffb39f'%3EH/O%3C/text%3E%3C/svg%3E">
 <title>Paper2Galgame — Hanazar Ochikawa</title>
 <style>
@@ -44,6 +44,7 @@ html {
   overflow-x: clip;
   scroll-behavior: smooth;
   scroll-padding-top: 7rem;
+  touch-action: pan-y pinch-zoom;
 }
 
 body {
@@ -57,6 +58,7 @@ body {
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   isolation: isolate;
+  touch-action: pan-y pinch-zoom;
 }
 
 ::selection {
@@ -741,6 +743,7 @@ body.is-scrolled .topbar {
   z-index: 2;
   flex: 1.25 1 24rem;
   min-width: 0;
+  container-type: inline-size;
 }
 
 .eyebrow {
@@ -762,10 +765,10 @@ h1 {
   max-width: 10ch;
   margin: 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(4.5rem, 10.4vw, 10.5rem);
+  font-size: clamp(4.5rem, 17.5cqi, 8.75rem);
   font-weight: 400;
-  line-height: 0.78;
-  letter-spacing: -0.07em;
+  line-height: 0.82;
+  letter-spacing: -0.05em;
 }
 
 h1 span {
@@ -1678,7 +1681,7 @@ main:focus {
   background: rgba(158, 232, 239, 0.12);
 }
 
-@media (hover: none) and (pointer: coarse) {
+@media (any-pointer: coarse) {
   [data-reveal] {
     filter: none;
     scale: 1;
@@ -1697,7 +1700,9 @@ main:focus {
   .hero-cta[data-reveal] {
     transition: border-color 220ms ease, background 220ms ease, transform 220ms var(--ease);
   }
+}
 
+@media (hover: none) and (pointer: coarse) {
   .motion-field {
     display: block;
     opacity: 0.36;
@@ -2235,7 +2240,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 </style>
 </noscript>
 </head>
-<body data-version="2.8.3">
+<body data-version="2.8.4">
 <a class="skip-link" href="#main">跳到主要内容</a>
 <div class="scroll-progress" aria-hidden="true"><span></span></div>
 <canvas class="motion-field" aria-hidden="true"></canvas>
@@ -2281,7 +2286,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
     <div class="top-actions">
       <span class="portal-status">
         <span class="status-dot" aria-hidden="true"></span>
-        v2.8.3 · Link portal
+        v2.8.4 · Link portal
       </span>
       <div class="audio-controls" role="group" aria-label="声音控制">
         <button id="soundToggle" class="sound-toggle" type="button" aria-pressed="true" aria-label="界面音效" data-magnetic data-ripple>
@@ -2432,7 +2437,7 @@ h1 span { opacity: 1; clip-path: none; transform: none; }
 
   <footer class="footer" data-reveal>
     <p class="footer-note">非官方网站。本页仅整理并指向公开链接，不代表 Paper2Galgame 官方立场。</p>
-    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.3</p>
+    <p class="footer-meta">© 2026 Hanazar Ochikawa · v2.8.4</p>
   </footer>
 </div>
 

@@ -4,9 +4,10 @@ import test from 'node:test';
 
 const html = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const readOptional = url => readFile(url, 'utf8').catch(() => '');
-const [readme, announcement, historyV282, historyV281, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
+const [readme, announcement, historyV283, historyV282, historyV281, historyV28, historyV27, historyV26, historyV25, historyV24, historyV23, historyV22, historyV21, historyV20] = await Promise.all([
   readOptional(new URL('../README.md', import.meta.url)),
   readOptional(new URL('../ANNOUNCEMENT.md', import.meta.url)),
+  readOptional(new URL('../docs/announcements/history/v2.8.3.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.8.2.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.8.1.md', import.meta.url)),
   readOptional(new URL('../docs/announcements/history/v2.8.0.md', import.meta.url)),
@@ -264,10 +265,15 @@ test('gives coarse pointers a bounded tactile motion system', () => {
 });
 
 test('keeps native touch scrolling available during reveal choreography', () => {
-  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\[data-reveal\]\s*{[\s\S]*?filter:\s*none;[\s\S]*?scale:\s*1;[\s\S]*?translate:\s*none;[\s\S]*?transition:\s*none;/);
-  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\.is-ready \[data-reveal\]\.is-visible\s*{\s*animation:\s*touchRevealIn 620ms var\(--ease\) var\(--delay, 0ms\) both;/);
+  assert.match(html, /@media\s*\(any-pointer:\s*coarse\)[\s\S]*?\[data-reveal\]\s*{[\s\S]*?filter:\s*none;[\s\S]*?scale:\s*1;[\s\S]*?translate:\s*none;[\s\S]*?transition:\s*none;/);
+  assert.match(html, /@media\s*\(any-pointer:\s*coarse\)[\s\S]*?\.is-ready \[data-reveal\]\.is-visible\s*{\s*animation:\s*touchRevealIn 620ms var\(--ease\) var\(--delay, 0ms\) both;/);
   assert.match(html, /@keyframes touchRevealIn\s*{\s*from\s*{\s*opacity:\s*0;\s*}\s*to\s*{\s*opacity:\s*1;\s*}\s*}/);
-  assert.match(html, /@media\s*\(hover:\s*none\)\s*and\s*\(pointer:\s*coarse\)[\s\S]*?\.link-card\[data-reveal\]\s*{\s*transition:\s*transform 180ms ease-out, border-color 320ms ease, box-shadow 420ms var\(--ease\);/);
+  assert.match(html, /@media\s*\(any-pointer:\s*coarse\)[\s\S]*?\.link-card\[data-reveal\]\s*{\s*transition:\s*transform 180ms ease-out, border-color 320ms ease, box-shadow 420ms var\(--ease\);/);
+});
+
+test('prioritizes vertical panning without disabling pinch zoom', () => {
+  assert.match(html, /html\s*{[^}]*touch-action:\s*pan-y pinch-zoom;/);
+  assert.match(html, /body\s*{[^}]*touch-action:\s*pan-y pinch-zoom;/);
 });
 
 test('preserves sticky navigation and natural mobile scroll boundaries', () => {
@@ -379,6 +385,13 @@ test('constrains the hero and header controls on narrow screens', () => {
   assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.link-card\s*{[\s\S]*?flex-basis:\s*100%/);
 });
 
+test('scales the hero title against its own column', () => {
+  assert.match(html, /\.hero-copy\s*{[^}]*container-type:\s*inline-size;/);
+  assert.match(html, /h1\s*{[^}]*font-size:\s*clamp\(4\.5rem,\s*17\.5cqi,\s*8\.75rem\);/);
+  assert.match(html, /h1\s*{[^}]*line-height:\s*0\.82;[^}]*letter-spacing:\s*-0\.05em;/);
+  assert.doesNotMatch(html, /font-size:\s*clamp\(4\.5rem,\s*10\.4vw,\s*10\.5rem\)/);
+});
+
 test('reflows controls and cards when text is enlarged', () => {
   assert.match(html, /\.topbar\s*{[\s\S]*?flex-wrap:\s*wrap/);
   assert.match(html, /@media\s*\(max-width:\s*720px\)[\s\S]*?\.site-shell\s*{[\s\S]*?max\(16px,\s*env\(safe-area-inset-left/);
@@ -422,14 +435,16 @@ test('finishes the intro when restoring from the back-forward cache', () => {
   );
 });
 
-test('publishes v2.8.3 and archives earlier announcements', () => {
-  assert.match(html, /name="application-version" content="2\.8\.3"/);
-  assert.equal((html.match(/v2\.8\.3/g) ?? []).length, 2);
-  assert.match(html, /data-version="2\.8\.3"/);
-  assert.match(readme, /Current release: \*\*v2\.8\.3\*\*/);
-  assert.match(readme, /v2\.8\.2 archive/);
-  assert.match(announcement, /v2\.8\.3/);
-  assert.match(announcement, /history\/v2\.8\.2\.md/);
+test('publishes v2.8.4 and archives earlier announcements', () => {
+  assert.match(html, /name="application-version" content="2\.8\.4"/);
+  assert.equal((html.match(/v2\.8\.4/g) ?? []).length, 2);
+  assert.match(html, /data-version="2\.8\.4"/);
+  assert.match(readme, /Current release: \*\*v2\.8\.4\*\*/);
+  assert.match(readme, /v2\.8\.3 archive/);
+  assert.match(announcement, /v2\.8\.4/);
+  assert.match(announcement, /history\/v2\.8\.3\.md/);
+  assert.match(historyV283, /v2\.8\.3/);
+  assert.match(historyV283, /当前公告/);
   assert.match(historyV282, /v2\.8\.2/);
   assert.match(historyV282, /当前公告/);
   assert.match(historyV281, /v2\.8\.1/);
